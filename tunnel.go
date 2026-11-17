@@ -95,9 +95,13 @@ func setPublicURL(u string) {
 	publicURL = u
 	sendAll("tunnel", M{"url": u})
 	mu.Unlock()
+	go publishLink(u)
 }
 
 func stopTunnel() {
+	if lastPublished != "" {
+		publishLink("") // Freunden zeigen: gerade offline
+	}
 	if tunnelCmd != nil && tunnelCmd.Process != nil {
 		tunnelCmd.Process.Kill()
 	}

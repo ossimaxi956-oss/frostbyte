@@ -1,4 +1,5 @@
-🔧 Bots repariert & sichtbar!
-- Galaxy-Bot: Die Schalter (Willkommen, Level, Links, CAPS, Spam) lassen sich jetzt anklicken – auch ein Klick auf den Titel schaltet um
-- Aktive Bots stehen jetzt in der Mitgliederliste (Gruppe „Bots“) mit ✓ BOT und Status
-- Klick auf einen Bot zeigt sein Profil: was er kann, wie man ihn benutzt, Einstellungen
+🔗 Fester Einladungs-Link!
+- Jeder Gastgeber hat jetzt einen festen Einladungs-Link, der sich NIE ändert (in der App unter „Freund hinzufügen“)
+- Freunde öffnen den Link einfach im Browser (PC, Handy, Tablet) – sie müssen Frostbyte NICHT herunterladen
+- Wer Frostbyte trotzdem herunterlädt: auf dem Login-Bildschirm „Ein Freund hat mir einen Einladungs-Link geschickt“ wählen
+- Ist der Gastgeber offline, zeigt der Link „Gerade offline“ und verbindet automatisch, sobald er wieder da ist

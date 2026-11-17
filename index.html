@@ -211,6 +211,7 @@ input,textarea{font:inherit;color:var(--text)}
 .addbox:focus-within{border-color:var(--accent)}
 .addbox input{flex:1;background:transparent;border:0;outline:none;font-size:16px;min-width:0}
 .linkbox{background:linear-gradient(135deg,rgba(79,157,255,.18),rgba(127,216,255,.08));border:1px solid rgba(127,200,255,.3);border-radius:10px;padding:12px 14px;margin:8px 0 16px}
+.joinbtn{width:100%;margin-top:14px;background:rgba(46,230,245,.1)!important;border:1px solid rgba(46,230,245,.35)!important;color:#bff3ff!important;font-size:14px}
 .linkbox b{color:var(--head)}
 .link{flex:1;min-width:0;background:#0d1626;border-radius:6px;padding:8px 10px;font-family:Consolas,monospace;color:#9fdcff;overflow-wrap:anywhere;user-select:all}
 .fmsg{margin-top:8px;font-size:14px;min-height:18px}.fmsg.ok{color:#4ade80}.fmsg.bad{color:#fa777c}
@@ -537,6 +538,7 @@ body:before{content:"";position:fixed;inset:-20%;z-index:-1;pointer-events:none;
     <button class="btn primary big" id="authBtn" type="submit">Einloggen</button>
     <p class="switch"><span id="authSwitchText">Noch kein Konto?</span> <a href="#" id="authSwitch">Registrieren</a></p>
     <p class="hint">❄️ Keine E-Mail nötig – nur Name und Passwort.</p>
+    <button type="button" class="btn joinbtn hidden" id="joinBtn">🔗 Ein Freund hat mir einen Einladungs-Link geschickt</button>
   </form>
 </div>
 
@@ -720,6 +722,7 @@ async function loadState() {
   S.dms = {}; d.dms.forEach(function (x) { S.dms[x.id] = x; });
   S.fr = d.friends || { friends: [], incoming: [], outgoing: [] };
   S.publicUrl = d.publicUrl || '';
+  S.joinLink = d.joinLink || '';
   S.badWords = d.badWords || [];
   S.lan = d.lan || [];
   S.voiceSt = d.voice || {};
@@ -2187,6 +2190,12 @@ window.addEventListener('beforeunload', function () {
 
 // ---------- Internet-Link ----------
 function linkBox() {
+  if (S.joinLink) return el('div', { class: 'linkbox' }, el('b', {}, '🔗 Dein fester Einladungs-Link'),
+    el('p', { class: 'small muted' }, 'Dieser Link ändert sich NIE. Schick ihn deinen Freunden – sie öffnen ihn im Browser (PC, Handy, Tablet) und klicken auf „Registrieren“. Sie müssen Frostbyte NICHT selbst herunterladen!'),
+    el('div', { class: 'row', style: 'margin-top:6px' }, el('code', { class: 'link' }, S.joinLink),
+      el('button', { class: 'btn primary small', onclick: function () { copy(S.joinLink); } }, 'Link kopieren')),
+    el('p', { class: 'small', style: 'margin-top:6px;color:' + (S.publicUrl ? '#2ee59d' : '#ffc857') }, S.publicUrl ? '🟢 Online – Freunde können jetzt rein' : '🟡 Wird gerade verbunden … (dein PC braucht Internet)'),
+    el('p', { class: 'small muted', style: 'margin-top:2px' }, '⚠️ Geht nur, solange Frostbyte auf deinem PC läuft.'));
   if (!S.publicUrl) return el('div', { class: 'linkbox' }, el('b', {}, '🌍 Freunde von woanders'),
     el('p', { class: 'small muted' }, 'Der Internet-Link wird gerade erstellt … (dafür muss dein PC mit dem Internet verbunden sein)'));
   return el('div', { class: 'linkbox' }, el('b', {}, '🌍 Freunde von woanders einladen'),
@@ -2687,6 +2696,20 @@ function openSettings() {
 }
 
 // ---------- Start ----------
+if (/^(localhost|127\.0\.0\.1)$/.test(location.hostname)) $('joinBtn').classList.remove('hidden');
+$('joinBtn').onclick = function () {
+  var inp = el('input', { placeholder: 'Link oder Code einfügen' }), err = el('div', { class: 'err' });
+  async function go() {
+    try { var d = await api('/api/joinmode', { name: inp.value }); location.href = d.url; }
+    catch (e) { err.textContent = e.message; }
+  }
+  inp.onkeydown = function (e) { if (e.key === 'Enter') go(); };
+  modal('🔗 Einem Freund beitreten', el('div', {},
+    el('p', {}, 'Füge den Einladungs-Link (oder Code) ein, den dir dein Freund geschickt hat. Frostbyte öffnet dann ab jetzt immer direkt den Frostbyte von deinem Freund.'),
+    el('label', {}, 'Einladungs-Link'), inp, err,
+    el('div', { class: 'row end' }, el('button', { class: 'btn', onclick: closeModal }, 'Abbrechen'), el('button', { class: 'btn primary', onclick: go }, 'Beitreten'))));
+  inp.focus();
+};
 $('authSwitch').onclick = function (e) { e.preventDefault(); setAuthMode(authMode === 'login' ? 'register' : 'login'); $('aName').focus(); };
 $('authForm').onsubmit = async function (e) {
   e.preventDefault();

@@ -40,7 +40,7 @@ const (
 	OwnerName     = "Owner"
 	OwnerPassword = "Owner#2026" // nur beim allerersten Start benutzt
 	DefaultPort   = "3000"
-	Version       = "17"
+	Version       = "18"
 )
 
 //go:embed index.html
@@ -149,6 +149,7 @@ type DB struct {
 	BadWords   []string              `json:"badWords"`
 	ModLog     []*ModEntry           `json:"modLog"`
 	Giveaways  map[string]*Giveaway  `json:"giveaways"`
+	HostCode   string                `json:"hostCode"`
 }
 
 func modLog(e *ModEntry) {
@@ -685,6 +686,7 @@ func friendsChanged(a, b string) {
 func setupRoutes() {
 	setupBotRoutes()
 	setupRoleRoutes()
+	setupJoinRoutes()
 	routes["GET /api/info"] = Route{func(c *Ctx) (any, error) { return M{"app": AppName, "version": Version}, nil }, false, 0}
 	R("POST /api/friends/request", func(c *Ctx) (any, error) {
 		var t *User
@@ -843,7 +845,12 @@ func setupRoutes() {
 			}
 		}
 		return M{"app": AppName, "version": Version, "me": pubUser(c.user), "mainServer": db.MainServer, "emojis": EMOJIS, "colors": COLORS,
-			"users": users, "servers": servers, "dms": dms, "friends": friendState(c.user.ID), "voice": voice, "giveaways": gwsFor(c.user.ID), "publicUrl": publicURL, "lan": func() []string {
+			"users": users, "servers": servers, "dms": dms, "friends": friendState(c.user.ID), "voice": voice, "giveaways": gwsFor(c.user.ID), "publicUrl": publicURL, "joinLink": func() string {
+				if c.user.Role != "owner" {
+					return ""
+				}
+				return joinLink()
+			}(), "localApp": isLocal(c.r), "lan": func() []string {
 				if c.user.Role != "owner" {
 					return []string{}
 				}
@@ -1575,6 +1582,10 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
+	if r.Method == "GET" && p == "/start" {
+		serveStart(w, r)
+		return
+	}
 	if r.Method == "GET" && p == "/manifest.json" {
 		w.Header().Set("Content-Type", "application/manifest+json")
 		json.NewEncoder(w).Encode(M{"name": AppName, "short_name": AppName, "start_url": "/", "display": "standalone",
@@ -1811,6 +1822,11 @@ func main() {
 		who := whoRuns(local)
 		if who == "same" {
 			fmt.Println("\n  Frostbyte laeuft schon - ich oeffne das Fenster.")
+			if dataDir != "" {
+				if _, e := os.Stat(filepath.Join(dataDir, "join.txt")); e == nil {
+					local += "/start"
+				}
+			}
 			openApp(local)
 			time.Sleep(2 * time.Second)
 			return
@@ -1891,6 +1907,7 @@ func main() {
 	if db.Requests == nil {
 		db.Requests = []*FriendReq{}
 	}
+	ensureHostCode()
 	if db.Giveaways == nil {
 		db.Giveaways = map[string]*Giveaway{}
 	}
@@ -1957,12 +1974,20 @@ func main() {
 	fmt.Println("  >> Dieses Fenster offen lassen! Schliessen = Frostbyte aus. <<")
 	fmt.Println()
 
+	joining := joinCode() != ""
 	if os.Getenv("FROSTBYTE_UPDATED") == "" {
-		go func() { time.Sleep(300 * time.Millisecond); openApp(local) }()
+		target := local
+		if joining {
+			target = local + "/start"
+		}
+		go func() { time.Sleep(300 * time.Millisecond); openApp(target) }()
 	}
 	go updateLoop(srv)
+	go republishLoop()
 	go giveawayLoop()
-	go startTunnel(port)
+	if !joining {
+		go startTunnel(port)
+	}
 	if err := srv.Serve(ln); err != nil {
 		msgBox(AppName, "Fehler: "+err.Error())
 	}
