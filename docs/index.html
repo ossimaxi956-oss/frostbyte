@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Frostbyte – dein eigener Winter-Chat</title>
+<meta name="description" content="Frostbyte: Chatten, Freunde adden und telefonieren – ohne E-Mail, nur mit Name und Passwort.">
+<link rel="icon" href="logo.svg">
+<link rel="apple-touch-icon" href="icon.png">
+<meta name="theme-color" content="#0b1322">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif;color:#dfeaf8;min-height:100vh;overflow-x:hidden;
+  background:radial-gradient(ellipse at 50% 120%,rgba(120,200,255,.35),transparent 55%),radial-gradient(circle at 15% 10%,rgba(61,139,255,.35),transparent 40%),linear-gradient(180deg,#060b16 0%,#0d1a33 60%,#16305a 100%) fixed}
+#snow{position:fixed;inset:0;pointer-events:none;z-index:0}
+.wrap{position:relative;z-index:1;max-width:1000px;margin:0 auto;padding:28px 20px 80px}
+nav{display:flex;align-items:center;gap:12px}
+nav img{width:44px;height:44px}
+nav b{font-size:22px;letter-spacing:.3px;background:linear-gradient(90deg,#bff0ff,#6fb3ff);-webkit-background-clip:text;background-clip:text;color:transparent}
+nav a{margin-left:auto;color:#9fc4ff;text-decoration:none;font-weight:600}
+.hero{text-align:center;padding:70px 0 40px}
+.hero img{width:140px;height:140px;filter:drop-shadow(0 10px 30px rgba(79,157,255,.6));animation:float 4s ease-in-out infinite}
+@keyframes float{50%{transform:translateY(-10px)}}
+.hero h1{font-size:clamp(38px,7vw,68px);font-weight:900;margin:18px 0 10px;background:linear-gradient(90deg,#e8f8ff,#7fc6ff,#4f8bff);-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero p{font-size:20px;color:#a9c0e0;max-width:640px;margin:0 auto}
+.dl{display:inline-flex;align-items:center;gap:12px;margin-top:34px;padding:18px 34px;border-radius:14px;background:linear-gradient(135deg,#4aa8ff,#3d5bff);color:#fff;font-size:20px;font-weight:800;text-decoration:none;box-shadow:0 12px 30px rgba(61,110,255,.45);transition:transform .15s}
+.dl:hover{transform:translateY(-2px) scale(1.02)}
+.ver{margin-top:12px;color:#8aa0bf;font-size:14px;min-height:20px}
+.ver b{color:#bfe6ff}
+.alt{margin-top:6px;font-size:14px;color:#8aa0bf}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin-top:50px}
+.card{background:rgba(23,37,62,.75);border:1px solid rgba(160,210,255,.18);border-radius:16px;padding:22px;backdrop-filter:blur(8px)}
+.card .i{font-size:34px}
+.card h3{margin:10px 0 6px;color:#f3f9ff}
+.card p{color:#a9bcd6;font-size:15px;line-height:1.45}
+.steps{margin-top:50px;background:rgba(23,37,62,.75);border:1px solid rgba(160,210,255,.18);border-radius:16px;padding:26px}
+.steps h2{color:#f3f9ff;margin-bottom:14px}
+.steps ol{padding-left:22px;line-height:1.9;color:#cfe0f5}
+.steps code{background:#0d1626;padding:2px 6px;border-radius:5px;color:#9fdcff}
+.note{margin-top:14px;background:rgba(240,178,50,.12);border:1px solid rgba(240,178,50,.35);border-radius:10px;padding:12px 14px;color:#f5dba0;font-size:14px}
+.news{margin-top:30px}
+.news h2{color:#f3f9ff;margin-bottom:10px}
+.rel{background:rgba(13,22,38,.7);border-radius:12px;padding:14px 16px;margin-bottom:10px}
+.rel b{color:#bfe6ff}.rel span{color:#8aa0bf;font-size:13px;margin-left:8px}
+.rel div{margin-top:6px;color:#cfe0f5;white-space:pre-wrap;font-size:14px}
+footer{text-align:center;color:#6f84a3;font-size:13px;margin-top:50px}
+</style>
+</head>
+<body>
+<canvas id="snow"></canvas>
+<div class="wrap">
+  <nav><img src="logo.svg" alt=""><b>Frostbyte</b><a href="https://github.com/ossimaxi956-oss/frostbyte/releases">Alle Versionen</a></nav>
+  <section class="hero">
+    <img src="logo.svg" alt="Frostbyte Logo">
+    <h1>Frostbyte</h1>
+    <p>Dein eigener Winter-Chat ❄️ Chatten, Freunde adden, Server erstellen und telefonieren – ohne E-Mail, nur mit Name und Passwort.</p>
+    <a class="dl" id="dl" href="https://github.com/ossimaxi956-oss/frostbyte/releases/latest/download/Frostbyte.exe">⬇️ Für Windows herunterladen</a>
+    <div class="ver" id="ver">Neueste Version wird geladen …</div>
+    <div class="alt">Handy oder Tablet? Lass dir vom Owner den Internet-Link geben – das geht direkt im Browser.</div>
+  </section>
+
+  <div class="grid">
+    <div class="card"><div class="i">💬</div><h3>Chatten</h3><p>Server mit Kanälen, Privatnachrichten, Bilder, Emojis und Reaktionen – alles live.</p></div>
+    <div class="card"><div class="i">👥</div><h3>Freunde adden</h3><p>Einfach den Namen eingeben, Anfrage schicken – fertig.</p></div>
+    <div class="card"><div class="i">📞</div><h3>Telefonieren</h3><p>Anrufe wie bei Discord – am PC, Handy und Tablet.</p></div>
+    <div class="card"><div class="i">🛡️</div><h3>Sicher</h3><p>Wortfilter gegen Beleidigungen und Rassismus, Melden-Knopf und Admin-Bereich.</p></div>
+    <div class="card"><div class="i">🔄</div><h3>Updates von selbst</h3><p>Frostbyte aktualisiert sich automatisch – nie wieder neu herunterladen.</p></div>
+    <div class="card"><div class="i">❄️</div><h3>Winter-Look</h3><p>Schneefall, Eis-Farben und eigenes Logo.</p></div>
+  </div>
+
+  <div class="steps">
+    <h2>So startest du</h2>
+    <ol>
+      <li>Klick oben auf <b>„Für Windows herunterladen“</b>.</li>
+      <li>Öffne <code>Frostbyte.exe</code> (am besten vorher auf den Desktop ziehen).</li>
+      <li>Frostbyte öffnet sich von selbst – registriere dich mit Name und Passwort.</li>
+      <li>Klick oben links aufs ❄️-Logo → <b>„Freund hinzufügen“</b> → dort steht dein Link für Freunde.</li>
+    </ol>
+    <div class="note">⚠️ Windows zeigt beim ersten Start vielleicht <b>„Der Computer wurde durch Windows geschützt“</b>. Klick dann auf <b>„Weitere Informationen“</b> → <b>„Trotzdem ausführen“</b>. Das kommt, weil Frostbyte neu und noch nicht bekannt ist.</div>
+  </div>
+
+  <div class="news"><h2>Neuigkeiten</h2><div id="news"><div class="rel">Wird geladen …</div></div></div>
+  <footer>Frostbyte ❄️ – gemacht von 2011Pallmall</footer>
+</div>
+<script>
+(function () {
+  // Neueste Version automatisch von GitHub holen
+  function fmt(d) { return new Date(d).toLocaleDateString('de-DE', { day: 'numeric', month: 'long', year: 'numeric' }); }
+  fetch('https://api.github.com/repos/ossimaxi956-oss/frostbyte/releases?per_page=5').then(function (r) { return r.json(); }).then(function (list) {
+    if (!Array.isArray(list) || !list.length) { document.getElementById('ver').textContent = 'Bald verfügbar'; document.getElementById('news').textContent = ''; return; }
+    var latest = list[0], asset = (latest.assets || []).filter(function (a) { return a.name === 'Frostbyte.exe'; })[0];
+    var v = document.getElementById('ver'); v.textContent = '';
+    var b = document.createElement('b'); b.textContent = 'Version ' + latest.tag_name.replace(/^v/, '');
+    v.append(b, document.createTextNode(' · ' + fmt(latest.published_at) + (asset ? ' · ' + (asset.size / 1048576).toFixed(1) + ' MB' : '')));
+    var n = document.getElementById('news'); n.textContent = '';
+    list.forEach(function (r) {
+      var d = document.createElement('div'); d.className = 'rel';
+      var t = document.createElement('b'); t.textContent = r.name || r.tag_name;
+      var s = document.createElement('span'); s.textContent = fmt(r.published_at);
+      var body = document.createElement('div'); body.textContent = r.body || '';
+      d.append(t, s, body); n.append(d);
+    });
+  }).catch(function () { document.getElementById('ver').textContent = ''; });
+  // Schnee
+  var c = document.getElementById('snow'), x = c.getContext('2d'), F = [];
+  function size() { c.width = innerWidth; c.height = innerHeight; } size(); addEventListener('resize', size);
+  for (var i = 0; i < 120; i++) F.push({ x: Math.random(), y: Math.random(), r: .8 + Math.random() * 2.4, s: .0007 + Math.random() * .0013, w: Math.random() * 6, o: .3 + Math.random() * .6 });
+  (function f() {
+    requestAnimationFrame(f); x.clearRect(0, 0, c.width, c.height); x.fillStyle = '#fff';
+    F.forEach(function (p) { p.y += p.s; p.w += .012; p.x += Math.sin(p.w) * .0005; if (p.y > 1.02) { p.y = -.02; p.x = Math.random(); }
+      x.globalAlpha = p.o; x.beginPath(); x.arc(p.x * c.width, p.y * c.height, p.r, 0, 6.283); x.fill(); });
+  })();
+})();
+</script>
+</body>
+</html>

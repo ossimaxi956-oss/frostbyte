@@ -1,0 +1,1614 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>__APP_NAME__</title>
+<link rel="icon" href="/logo.svg">
+<link rel="manifest" href="/manifest.json">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta name="theme-color" content="#0b1322">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Frostbyte">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--rail:#0b1322;--side:#111d33;--chat:#17253e;--input:#1f3050;--hover:#1d2c47;--active:#26395a;--text:#dfeaf8;--head:#f3f9ff;--muted:#8aa0bf;--accent:#3d8bff;--green:#2fbf71;--red:#e5484d;--yellow:#f0b232}
+html,body{height:100%}
+body{font-family:"gg sans","Noto Sans","Segoe UI",system-ui,-apple-system,Roboto,Helvetica,Arial,sans-serif;background:var(--chat);color:var(--text);font-size:15px;overflow:hidden}
+.hidden{display:none!important}
+button{font:inherit;cursor:pointer;border:0;background:none;color:inherit}
+input,textarea{font:inherit;color:var(--text)}
+::-webkit-scrollbar{width:8px;height:8px}::-webkit-scrollbar-thumb{background:#2a3a55;border-radius:4px}::-webkit-scrollbar-track{background:transparent}
+.muted{color:var(--muted)}.small{font-size:13px}.pad{padding:8px}
+/* Login */
+.auth{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;padding:16px;background:radial-gradient(ellipse at 50% 120%,rgba(120,200,255,.35),transparent 55%),radial-gradient(circle at 15% 15%,rgba(61,139,255,.35),transparent 40%),linear-gradient(180deg,#060b16 0%,#0d1a33 60%,#16305a 100%)}
+.auth:after{content:"";position:absolute;left:-5%;right:-5%;bottom:-40px;height:120px;background:#eaf5ff;border-radius:50% 50% 0 0/100% 100% 0 0;opacity:.9;box-shadow:0 -10px 40px rgba(200,230,255,.4)}
+.card{position:relative;z-index:22;background:rgba(23,37,62,.82);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(160,210,255,.18);padding:32px;border-radius:14px;width:100%;max-width:440px;box-shadow:0 12px 40px rgba(0,0,0,.5);text-align:center}
+.card .logo img{width:84px;height:84px;filter:drop-shadow(0 6px 18px rgba(79,157,255,.55))}
+.card .brand{font-size:30px;font-weight:800;letter-spacing:.5px;background:linear-gradient(90deg,#bff0ff,#6fb3ff);-webkit-background-clip:text;background-clip:text;color:transparent;margin-top:4px}
+.card h1{color:var(--head);font-size:20px;margin:8px 0 4px}
+.card .sub{color:var(--muted);margin-bottom:12px}
+.card label,.box label{display:block;text-align:left;font-size:12px;font-weight:700;color:#a9bcd6;margin:14px 0 6px;letter-spacing:.02em;text-transform:uppercase}
+.card input,.box input,.box textarea{width:100%;background:#0d1626;border:0;border-radius:4px;padding:10px;outline:none;font-size:15px}
+.box textarea{resize:vertical}
+.card .switch{margin-top:14px;text-align:left;color:var(--muted);font-size:14px}
+.card .switch a{color:#00a8fc;text-decoration:none}
+.card .hint{margin-top:16px;font-size:12px;color:var(--muted)}
+.btn{padding:9px 16px;border-radius:4px;font-weight:600;color:#fff;background:#33476a;transition:filter .15s;white-space:nowrap}
+.btn:hover{filter:brightness(1.12)}.btn:disabled{opacity:.5;cursor:default}
+.btn.primary{background:var(--accent)}.btn.green{background:var(--green)}.btn.red{background:var(--red)}
+.btn.big{width:100%;margin-top:20px;padding:12px;font-size:16px}
+.btn.small{padding:5px 10px;font-size:13px}
+.err{color:#fa777c;font-size:14px;margin-top:8px;min-height:18px;text-align:left}
+/* Layout */
+#app{display:flex;height:100vh;height:100dvh}
+#rail{width:72px;background:var(--rail);padding:12px 0;display:flex;flex-direction:column;align-items:center;gap:8px;overflow-y:auto;flex-shrink:0;scrollbar-width:none}
+#rail::-webkit-scrollbar{display:none}
+.rail-item{position:relative;width:72px;display:flex;justify-content:center;cursor:pointer;flex-shrink:0}
+.rail-item .icon{width:48px;height:48px;border-radius:50%;background:var(--chat);display:flex;align-items:center;justify-content:center;font-weight:600;color:var(--head);transition:border-radius .15s,background .15s;font-size:17px;user-select:none}
+.rail-item:hover .icon,.rail-item.active .icon{border-radius:16px;background:var(--accent);color:#fff}
+.rail-item.add .icon{color:var(--green);font-size:26px;font-weight:400}.rail-item.add:hover .icon{background:var(--green);color:#fff}
+.rail-item.adm .icon{font-size:22px}.rail-item.adm:hover .icon{background:var(--yellow)}
+.rail-item .pill{position:absolute;left:0;top:50%;width:4px;height:0;background:#fff;border-radius:0 4px 4px 0;transform:translateY(-50%);transition:height .15s}
+.rail-item.unread .pill{height:8px}.rail-item:hover .pill{height:20px}.rail-item.active .pill{height:40px}
+.rail-item .badge{position:absolute;bottom:-3px;right:9px;background:var(--red);color:#fff;font-size:12px;font-weight:700;border-radius:10px;padding:0 5px;min-width:18px;height:18px;line-height:18px;text-align:center;border:3px solid var(--rail);box-sizing:content-box}
+.rail-sep{width:32px;height:2px;background:#22314b;border-radius:1px;flex-shrink:0}
+#side{width:240px;background:var(--side);display:flex;flex-direction:column;flex-shrink:0}
+.side-head{height:48px;padding:0 16px;display:flex;align-items:center;justify-content:space-between;gap:8px;font-weight:600;color:var(--head);border-bottom:1px solid #0e1829;flex-shrink:0}
+.side-head.click{cursor:pointer}.side-head.click:hover{background:var(--hover)}
+.side-head .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#chanList{flex:1;overflow-y:auto;padding:8px}
+.cat{display:flex;justify-content:space-between;align-items:center;padding:16px 8px 4px;font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.02em}
+.cat button{font-size:20px;line-height:1;color:var(--muted)}.cat button:hover{color:var(--head)}
+.chan{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:4px;color:var(--muted);cursor:pointer;margin:1px 0;font-weight:500}
+.chan:hover{background:var(--hover);color:var(--text)}
+.chan.active{background:var(--active);color:#fff}
+.chan.unread{color:#fff;font-weight:700}
+.chan .hash{font-size:20px;opacity:.7;width:18px;text-align:center}
+.chan .hash.emo{font-size:16px;width:24px;opacity:1}
+.chan .nm{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.chan .cnt{background:var(--red);color:#fff;border-radius:8px;font-size:12px;padding:0 6px;font-weight:700}
+.dmrow{padding:5px 8px}
+.newdm{width:100%;text-align:left;padding:8px;border-radius:4px;color:var(--muted);font-weight:600}.newdm:hover{background:var(--hover);color:var(--text)}
+#userPanel{height:52px;background:#101a2c;display:flex;align-items:center;gap:8px;padding:0 8px;flex-shrink:0}
+#userPanel .up{flex:1;min-width:0}
+#userPanel .nm{font-weight:600;color:var(--head);font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.av{position:relative;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;flex-shrink:0;user-select:none;text-transform:uppercase}
+.av .dot{position:absolute;right:-2px;bottom:-2px;width:38%;height:38%;border-radius:50%;border:3px solid var(--side);background:#6f84a3}
+.av .dot.on{background:var(--green)}
+#main{flex:1;display:flex;flex-direction:column;min-width:0;background:var(--chat);position:relative}
+.chat-head{height:48px;display:flex;align-items:center;gap:8px;padding:0 12px 0 16px;border-bottom:1px solid #101b2e;flex-shrink:0}
+.chat-head .title{font-weight:600;color:var(--head);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chat-head .hash{font-size:22px;color:var(--muted)}
+.dot-inline{width:10px;height:10px;border-radius:50%;background:#6f84a3}.dot-inline.on{background:var(--green)}
+.iconbtn{width:34px;height:34px;border-radius:4px;color:#a9bcd6;font-size:18px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.iconbtn:hover{color:var(--head);background:var(--hover)}
+.mobile-only{display:none}
+.conn{background:var(--red);color:#fff;text-align:center;font-size:13px;padding:4px}
+#msgs{flex:1;overflow-y:auto;overflow-x:hidden;padding:16px 0 8px}
+.welcome{padding:16px 16px 20px}
+.welcome .wicon{width:68px;height:68px;border-radius:50%;background:#2a3d5e;font-size:40px;display:flex;align-items:center;justify-content:center;color:#fff;margin-bottom:8px}
+.welcome .av{margin-bottom:8px}
+.welcome h2{color:var(--head);font-size:28px;margin-bottom:4px;word-break:break-word}
+.welcome p{color:var(--muted)}
+.loading{padding:16px;color:var(--muted)}
+.empty{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:10px;text-align:center;padding:24px;color:var(--muted)}
+.empty-icon{font-size:56px}.empty h3{color:var(--head)}
+.daysep{display:flex;align-items:center;margin:20px 16px 4px;color:var(--muted);font-size:12px;font-weight:600}
+.daysep:before,.daysep:after{content:"";flex:1;height:1px;background:#2a3a55}
+.daysep span{padding:0 8px}
+.msg{position:relative;padding:2px 56px 2px 72px;margin-top:14px;min-height:44px}
+.msg.grouped{margin-top:0;min-height:0}
+.msg:hover,.msg.sel{background:#1f2e48}
+.msg.mentioned{background:rgba(240,178,50,.08);box-shadow:inset 2px 0 0 var(--yellow)}
+.msg>.av{position:absolute;left:16px;top:4px;cursor:pointer}
+.mhead{display:flex;align-items:baseline;gap:6px;flex-wrap:wrap}
+.mname{font-weight:600;cursor:pointer}.mname:hover{text-decoration:underline}
+.mtime{font-size:12px;color:var(--muted)}
+.gtime{position:absolute;left:0;width:62px;text-align:right;font-size:11px;color:var(--muted);top:5px;opacity:0}
+.msg:hover .gtime{opacity:1}
+.mtext{line-height:1.375;overflow-wrap:anywhere;color:var(--text)}
+.mtext a{color:#00a8fc;text-decoration:none}.mtext a:hover{text-decoration:underline}
+.mtext code{background:#14213a;padding:1px 4px;border-radius:4px;font-family:Consolas,monospace;font-size:85%}
+.mention{background:rgba(88,101,242,.3);color:#c9cdfb;border-radius:3px;padding:0 2px;font-weight:500}
+.mention.me{background:rgba(240,178,50,.3);color:var(--yellow)}
+.edited{font-size:11px;color:var(--muted)}
+.mimg{display:block;max-width:min(400px,100%);max-height:320px;border-radius:8px;margin-top:6px;cursor:zoom-in}
+.reacts{display:flex;gap:4px;flex-wrap:wrap;margin-top:4px}
+.react{background:#14213a;border:1px solid transparent;border-radius:8px;padding:2px 6px;font-size:14px;color:#a9bcd6}
+.react:hover{border-color:#33476a}.react.mine{background:rgba(88,101,242,.15);border-color:var(--accent);color:#dee0fc}
+.mact{position:absolute;right:16px;top:-16px;display:none;background:var(--chat);border:1px solid #101b2e;border-radius:6px;box-shadow:0 2px 8px rgba(0,0,0,.25);z-index:2;overflow:hidden}
+.msg:hover .mact,.msg.sel .mact{display:flex}
+.mact button{width:32px;height:32px;font-size:16px}.mact button:hover{background:var(--hover)}
+.badge-role{font-size:10px;font-weight:700;padding:1px 5px;border-radius:4px;color:#fff;text-transform:uppercase;align-self:center;letter-spacing:.03em;white-space:nowrap}
+.badge-role.owner{background:var(--yellow);color:#0d1626}.badge-role.admin{background:var(--red)}.badge-role.ban{background:#33476a}
+.editbox textarea{width:100%;background:var(--input);border:0;border-radius:6px;padding:10px;outline:none;resize:none;margin-top:4px}
+.editbox small{color:var(--muted);font-size:12px}
+.composer-wrap{padding:0 16px}
+.composer{display:flex;align-items:flex-end;gap:2px;background:var(--input);border-radius:8px;padding:2px 6px}
+.preview:not(.hidden)+.composer{border-radius:0 0 8px 8px}
+.composer textarea{flex:1;background:transparent;border:0;outline:none;resize:none;padding:11px 4px;max-height:200px;line-height:1.375;min-width:0}
+.composer .iconbtn{width:40px;height:42px;font-size:20px}
+.preview{background:#14213a;border-radius:8px 8px 0 0;padding:10px;display:flex;gap:10px;align-items:flex-start;border-bottom:1px solid #0e1829}
+.preview img{max-height:120px;max-width:200px;border-radius:6px}
+#typing{height:26px;padding:0 16px;font-size:13px;color:#a9bcd6;display:flex;align-items:center;gap:6px}
+.dots{display:inline-flex;gap:3px}
+.dots i{width:6px;height:6px;border-radius:50%;background:#a9bcd6;animation:blink 1.4s infinite both}
+.dots i:nth-child(2){animation-delay:.2s}.dots i:nth-child(3){animation-delay:.4s}
+@keyframes blink{0%,80%,100%{opacity:.25}40%{opacity:1}}
+#members{width:240px;background:var(--side);overflow-y:auto;padding:8px;flex-shrink:0}
+.mem{display:flex;align-items:center;gap:10px;padding:6px 8px;border-radius:4px;cursor:pointer}
+.mem:hover{background:var(--hover)}
+.mem.off{opacity:.4}.mem.off:hover{opacity:1}
+.mem .nm{font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;min-width:0}
+.mini-prof{background:#101a2c;border-radius:8px;overflow:hidden;padding:0 12px 12px}
+.mini-prof .prof-banner{margin:0 -12px}
+.mini-prof h3{color:var(--head);margin:6px 0 4px}
+.mini-prof p{margin-top:8px;font-size:14px;overflow-wrap:anywhere}
+#backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:25}
+/* Modal */
+#modal{position:fixed;inset:0;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;z-index:50;padding:16px}
+.box{background:var(--chat);border-radius:8px;width:100%;max-width:460px;max-height:90vh;overflow-y:auto;padding:20px;animation:pop .15s;box-shadow:0 8px 32px rgba(0,0,0,.5)}
+.box.wide{max-width:720px}
+.box.imgview{max-width:none;width:auto;background:transparent;box-shadow:none;padding:0}
+@keyframes pop{from{transform:scale(.95);opacity:0}}
+.mtitle{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;gap:10px}
+.mtitle h2{color:var(--head);font-size:20px;overflow-wrap:anywhere}
+.x{font-size:18px;color:var(--muted);padding:4px 8px}.x:hover{color:var(--head)}
+.box h3{color:var(--head);font-size:15px;margin:16px 0 6px}
+.box p{color:#a9bcd6;line-height:1.4}
+.box hr{border:0;border-top:1px solid #2a3a55;margin:18px 0}
+.row{display:flex;gap:8px;align-items:center;margin-top:10px;flex-wrap:wrap}
+.row.end{justify-content:flex-end}
+.row>input{flex:1;min-width:120px}
+.or{text-align:center;color:var(--muted);font-size:12px;font-weight:700;margin:18px 0 4px}
+.swatches{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.sw{width:32px;height:32px;border-radius:50%;border:3px solid transparent}.sw.sel{border-color:#fff}
+.box input.colorpick{width:40px;height:36px;padding:2px;cursor:pointer}
+.code{font-family:Consolas,monospace;font-size:22px;letter-spacing:3px;background:#0d1626;padding:10px 14px;border-radius:6px;color:var(--head);flex:1;text-align:center;user-select:all}
+.list-item{display:flex;align-items:center;gap:10px;padding:8px;border-radius:6px;flex-wrap:wrap}
+.list-item:hover{background:var(--hover)}
+.list-item.click{cursor:pointer}
+.list-item .nm{font-weight:600;color:var(--head);display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.list-item .acts{display:flex;gap:6px;flex-wrap:wrap}
+.list-item .hash{color:var(--muted);font-size:20px}
+.ulist{margin-top:10px;max-height:50vh;overflow-y:auto}
+.stats{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+.stat{flex:1;min-width:100px;background:#14213a;border-radius:8px;padding:12px;text-align:center}
+.stat b{display:block;font-size:24px;color:var(--head)}
+.prof-banner{height:64px;margin:-20px -20px 0}
+.prof-av{margin-top:-34px;border:6px solid var(--chat);box-sizing:content-box}
+.mini-prof .prof-av{border-color:#101a2c}
+.prof-name{color:var(--head);font-size:22px;margin-top:6px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.prof-about{background:#14213a;border-radius:8px;padding:10px 12px;margin-top:12px}
+.prof-about h3{margin:0 0 4px;font-size:12px;text-transform:uppercase;color:var(--muted)}
+.prof-about p{overflow-wrap:anywhere}
+.picker{position:fixed;z-index:60;background:var(--side);border-radius:8px;padding:8px;display:grid;grid-template-columns:repeat(8,36px);gap:2px;box-shadow:0 8px 24px rgba(0,0,0,.5)}
+.picker button{width:36px;height:36px;font-size:22px;border-radius:4px}.picker button:hover{background:var(--active)}
+#toasts{position:fixed;top:16px;left:50%;transform:translateX(-50%);z-index:100;display:flex;flex-direction:column;gap:8px;align-items:center;pointer-events:none}
+.toast{background:#0a1220;color:#fff;padding:10px 16px;border-radius:6px;box-shadow:0 4px 16px rgba(0,0,0,.4);font-size:14px;animation:pop .15s}
+.toast.bad{background:var(--red)}
+#snow{position:fixed;inset:0;width:100vw;height:100vh;pointer-events:none;z-index:21}
+.rail-item.home .icon{background:transparent;overflow:hidden}
+.rail-item .icon img{width:48px;height:48px;display:block}
+.side-head{background:linear-gradient(180deg,rgba(160,210,255,.07),transparent)}
+.welcome .wicon{background:linear-gradient(135deg,#7fd8ff,#3d6bff)}
+.box input[type=checkbox]{width:auto;margin-right:8px;transform:scale(1.2)}
+.toggle{display:flex!important;align-items:center;font-size:15px!important;text-transform:none!important;color:var(--text)!important;cursor:pointer;font-weight:500!important}
+.tabs{display:flex;gap:6px;align-items:center;overflow-x:auto;min-width:0;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tdiv{width:1px;height:24px;background:#2a3a55;margin:0 6px;flex-shrink:0}
+.tab{padding:3px 10px;border-radius:4px;color:var(--muted);font-weight:500;white-space:nowrap}
+.tab:hover{background:var(--hover);color:var(--text)}
+.tab.on{background:var(--active);color:#fff}
+.tab.add{background:var(--green);color:#fff}.tab.add.on{background:transparent;color:var(--green)}
+.tab .tb{background:var(--red);color:#fff;border-radius:8px;font-size:11px;padding:0 5px;margin-left:4px;font-weight:700}
+.friends{padding:8px 24px 24px}
+.fhead{color:var(--head);font-size:16px;text-transform:uppercase;margin:8px 0 6px}
+.addbox{display:flex;gap:8px;margin-top:14px;background:#0d1626;border:1px solid #2a3a55;border-radius:8px;padding:6px 6px 6px 12px;align-items:center}
+.addbox:focus-within{border-color:var(--accent)}
+.addbox input{flex:1;background:transparent;border:0;outline:none;font-size:16px;min-width:0}
+.linkbox{background:linear-gradient(135deg,rgba(79,157,255,.18),rgba(127,216,255,.08));border:1px solid rgba(127,200,255,.3);border-radius:10px;padding:12px 14px;margin:8px 0 16px}
+.linkbox b{color:var(--head)}
+.link{flex:1;min-width:0;background:#0d1626;border-radius:6px;padding:8px 10px;font-family:Consolas,monospace;color:#9fdcff;overflow-wrap:anywhere;user-select:all}
+.fmsg{margin-top:8px;font-size:14px;min-height:18px}.fmsg.ok{color:#4ade80}.fmsg.bad{color:#fa777c}
+.fcat{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;margin:20px 0 6px;padding-bottom:8px;border-bottom:1px solid #2a3a55}
+.frow{display:flex;align-items:center;gap:12px;padding:10px;border-radius:8px;cursor:pointer;border-top:1px solid rgba(42,58,85,.6)}
+.frow:hover{background:var(--hover)}
+.finfo{flex:1;min-width:0}
+.fname{font-weight:600;color:var(--head);display:flex;gap:6px;align-items:center}
+.facts{display:flex;gap:8px}
+.fbtn{width:36px;height:36px;border-radius:50%;background:#0d1626;color:var(--text);font-size:16px;display:flex;align-items:center;justify-content:center}
+.fbtn:hover{background:#22314b}.fbtn.ok:hover{color:#4ade80}.fbtn.no:hover{color:#fa777c}
+.frbadge{font-size:11px;font-weight:700;color:#4ade80;margin-left:6px}
+#callbox{position:fixed;left:50%;top:110px;transform:translateX(-50%);z-index:46;background:linear-gradient(180deg,#1d3156,#111d33);border:1px solid rgba(127,200,255,.35);border-radius:18px;padding:22px 34px 18px;box-shadow:0 16px 40px rgba(0,0,0,.6);display:flex;flex-direction:column;align-items:center;gap:6px;min-width:250px;animation:pop .2s}
+#callbox .cname{font-weight:800;font-size:18px;color:var(--head)}
+#callbox .cstat{font-size:13px;color:var(--muted)}
+#callbox .cb-av{border-radius:50%;animation:ring 1.2s infinite;margin-bottom:6px}
+.cb-btns{display:flex;gap:28px;margin-top:12px}
+.cbtn{width:52px;height:52px;border-radius:50%;font-size:22px;display:flex;align-items:center;justify-content:center;background:#2a3d5e;color:#fff;flex-shrink:0}
+.cbtn:hover{filter:brightness(1.2)}
+.cbtn.red{background:var(--red)}.cbtn.green{background:var(--green)}.cbtn.on{background:#e8eef7}
+.hang span{display:inline-block;transform:rotate(135deg)}
+@keyframes ring{0%{box-shadow:0 0 0 0 rgba(47,191,113,.8)}70%{box-shadow:0 0 0 18px rgba(47,191,113,0)}100%{box-shadow:0 0 0 0 rgba(47,191,113,0)}}
+#callpanel{background:linear-gradient(180deg,#050a14,#0a1424);padding:30px 16px 22px;display:flex;flex-direction:column;align-items:center;gap:16px;border-bottom:1px solid #101b2e;flex-shrink:0;position:relative;z-index:22}
+.cp-avs{display:flex;gap:56px;align-items:flex-start}
+.cp-av{display:flex;flex-direction:column;align-items:center;gap:8px;position:relative}
+.cp-av .av{transition:box-shadow .12s,opacity .3s;box-shadow:0 0 0 3px transparent}
+.cp-av.talk .av{box-shadow:0 0 0 4px var(--green)}
+.cp-av.wait .av{opacity:.45;animation:ring 1.4s infinite}
+.cp-ico{position:absolute;top:58px;left:58px;background:var(--red);border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-size:14px;border:3px solid #050a14}
+.cp-nm{font-weight:600;color:var(--head);font-size:14px}
+.cp-stat{color:var(--muted);font-size:14px}.cp-stat.ok{color:#4ade80;font-weight:700}
+.cp-btns{display:flex;gap:14px}
+#voicebar{background:#0b1424;border-top:1px solid #1d2c47;padding:8px 8px 8px 12px;display:flex;align-items:center;gap:2px;flex-shrink:0}
+.vb-info{flex:1;min-width:0;cursor:pointer}
+.vb-title{color:#4ade80;font-weight:700;font-size:13px}.vb-title.wait{color:var(--yellow)}
+.vb-sub{font-size:12px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.vbtn{width:32px;height:32px;border-radius:6px;font-size:16px;display:flex;align-items:center;justify-content:center;color:var(--text);flex-shrink:0}
+.vbtn:hover{background:var(--hover)}.vbtn.on{background:rgba(229,72,77,.25)}.vbtn.red{color:#fa777c}
+.logrow{padding:10px;border-radius:8px;background:#0f1a2e;margin-bottom:8px}
+.loghead{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.logtext{margin-top:6px;color:var(--text);overflow-wrap:anywhere;white-space:pre-wrap;background:#0b1322;border-radius:6px;padding:6px 8px;font-size:14px}
+.logimg{max-width:160px;max-height:120px;border-radius:6px;margin-top:6px;cursor:zoom-in}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.chip{background:#0d1626;border:1px solid #2a3a55;border-radius:14px;padding:3px 6px 3px 10px;font-size:13px;display:flex;align-items:center;gap:4px}
+.chip button{color:var(--muted);font-size:13px;padding:0 4px}.chip button:hover{color:#fa777c}
+@media (min-width:1001px){#app.mem-hidden #members{display:none}}
+@media (max-width:1000px){
+  #members{position:fixed;right:0;top:0;bottom:0;z-index:30;transform:translateX(100%);transition:transform .2s;box-shadow:-4px 0 16px rgba(0,0,0,.4)}
+  #app.mem-open #members{transform:none}
+  #app.mem-open #backdrop{display:block}
+}
+@media (max-width:760px){
+  .mobile-only{display:flex}
+  #rail,#side{position:fixed;top:0;bottom:0;z-index:30;transition:transform .2s}
+  #rail{left:0;transform:translateX(-320px)}
+  #side{left:72px;transform:translateX(-320px)}
+  #app.nav-open #rail,#app.nav-open #side{transform:none}
+  #app.nav-open #backdrop{display:block}
+  .msg{padding-right:12px}
+  .mact{top:-30px}
+  .msg:hover .mact{display:none}.msg.sel .mact{display:flex}
+  .composer-wrap{padding:0 8px calc(env(safe-area-inset-bottom) + 4px)}
+  #callpanel{padding:18px 10px 14px}
+  .cp-avs{gap:28px}
+  .cbtn{width:56px;height:56px}
+  #callbox{top:70px;width:calc(100vw - 32px)}
+  .friends{padding:8px 10px 24px}
+  .chat-head{padding:0 6px}
+  .box{padding:16px}
+  .iconbtn{width:40px;height:40px}
+  .fbtn{width:40px;height:40px}
+}
+</style>
+</head>
+<body>
+<div id="auth" class="auth hidden">
+  <form class="card" id="authForm" autocomplete="on">
+    <div class="logo"><img src="/logo.svg" alt=""></div>
+    <div class="brand">__APP_NAME__</div>
+    <h1 id="authTitle">Willkommen zurück!</h1>
+    <p class="sub" id="authSub">Schön, dass du wieder da bist! ❄️</p>
+    <label for="aName">Benutzername</label>
+    <input id="aName" maxlength="20" autocomplete="username" required>
+    <label for="aPass">Passwort</label>
+    <input id="aPass" type="password" maxlength="200" autocomplete="current-password" required>
+    <div id="aPass2Wrap" class="hidden">
+      <label for="aPass2">Passwort wiederholen</label>
+      <input id="aPass2" type="password" maxlength="200" autocomplete="new-password">
+    </div>
+    <div class="err" id="authErr"></div>
+    <button class="btn primary big" id="authBtn" type="submit">Einloggen</button>
+    <p class="switch"><span id="authSwitchText">Noch kein Konto?</span> <a href="#" id="authSwitch">Registrieren</a></p>
+    <p class="hint">❄️ Keine E-Mail nötig – nur Name und Passwort.</p>
+  </form>
+</div>
+
+<div id="app" class="hidden">
+  <nav id="rail"></nav>
+  <aside id="side">
+    <div id="sideHead" class="side-head"></div>
+    <div id="chanList"></div>
+    <div id="voicebar" class="hidden"></div>
+    <div id="userPanel"></div>
+  </aside>
+  <main id="main">
+    <div id="chatHead" class="chat-head"></div>
+    <div id="callpanel" class="hidden"></div>
+    <div id="conn" class="conn hidden">Verbindung verloren – verbinde neu …</div>
+    <div id="msgs"></div>
+    <div id="composerWrap" class="composer-wrap">
+      <div id="preview" class="preview hidden"></div>
+      <div class="composer">
+        <button type="button" class="iconbtn" id="btnImg" title="Bild senden">🖼️</button>
+        <textarea id="input" rows="1" maxlength="2000" placeholder="Nachricht"></textarea>
+        <button type="button" class="iconbtn" id="btnEmoji" title="Emoji">😀</button>
+        <button type="button" class="iconbtn" id="btnSend" title="Senden">➤</button>
+      </div>
+      <input type="file" id="fileIn" accept="image/png,image/jpeg,image/gif,image/webp" hidden>
+    </div>
+    <div id="typing"></div>
+  </main>
+  <aside id="members"></aside>
+  <div id="backdrop"></div>
+</div>
+<div id="modal" class="hidden"></div>
+<div id="toasts"></div>
+<canvas id="snow"></canvas>
+<div id="callbox" class="hidden"></div>
+
+<script>
+(function () {
+'use strict';
+var APP = document.title;
+var S = { token: null, me: null, users: {}, servers: {}, dms: {}, main: null, emojis: [], colors: [],
+  view: { server: null, channel: null }, lastChan: {}, savedServer: null, msgs: {}, unread: {}, typing: {},
+  es: null, opened: false, publicUrl: '', badWords: [], fr: { friends: [], incoming: [], outgoing: [] }, friendTab: 'online', editing: null, editText: '', pendingImage: null, stick: true, hiddenCount: 0, lastTyping: 0 };
+try { S.token = localStorage.getItem('mc_token'); } catch (e) {}
+try { var v = JSON.parse(localStorage.getItem('mc_view') || '{}'); S.lastChan = v.lastChan || {}; S.savedServer = v.server || null; } catch (e) {}
+
+var NAME_CH = 'A-Za-z0-9_.\\-äöüÄÖÜß';
+var MENTION_SRC = '@([' + NAME_CH + ']+)';
+
+// ---------- Helfer ----------
+function $(id) { return document.getElementById(id); }
+function el(tag, props) {
+  var e = document.createElement(tag);
+  if (props) for (var k in props) {
+    var v = props[k]; if (v == null || v === false) continue;
+    if (k === 'class') e.className = v;
+    else if (k === 'text') e.textContent = v;
+    else if (k === 'html') e.innerHTML = v;
+    else if (k === 'style') e.style.cssText = v;
+    else if (k.slice(0, 2) === 'on') e.addEventListener(k.slice(2), v);
+    else e.setAttribute(k, v === true ? '' : v);
+  }
+  var kids = Array.prototype.slice.call(arguments, 2);
+  (function add(list) {
+    list.forEach(function (c) {
+      if (c == null || c === false) return;
+      if (Array.isArray(c)) return add(c);
+      e.append(c.nodeType ? c : document.createTextNode(String(c)));
+    });
+  })(kids);
+  return e;
+}
+function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+function pad(n) { return (n < 10 ? '0' : '') + n; }
+function hhmm(ts) { var d = new Date(ts); return pad(d.getHours()) + ':' + pad(d.getMinutes()); }
+function dayKey(ts) { var d = new Date(ts); return d.getFullYear() + '-' + d.getMonth() + '-' + d.getDate(); }
+function fmtTime(ts) {
+  var d = new Date(ts), n = new Date(), y = new Date(n.getFullYear(), n.getMonth(), n.getDate() - 1);
+  if (dayKey(ts) === dayKey(n)) return 'Heute um ' + hhmm(ts);
+  if (dayKey(ts) === dayKey(y)) return 'Gestern um ' + hhmm(ts);
+  return pad(d.getDate()) + '.' + pad(d.getMonth() + 1) + '.' + d.getFullYear() + ' ' + hhmm(ts);
+}
+function fmtDay(ts) { return new Date(ts).toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }); }
+function fmtDate(ts) { return new Date(ts).toLocaleDateString('de-DE'); }
+function toast(msg, bad) { var t = el('div', { class: 'toast' + (bad ? ' bad' : '') }, msg); $('toasts').append(t); setTimeout(function () { t.remove(); }, 3500); }
+function copy(text) {
+  if (navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(text).then(function () { toast('Kopiert ✓'); }, function () { toast('Code: ' + text); });
+  else toast('Code: ' + text + ' (bitte abschreiben)');
+}
+function isMod() { return S.me && (S.me.role === 'owner' || S.me.role === 'admin'); }
+function canManage(s) { return !!s && (s.ownerId === S.me.id || isMod()); }
+function curServer() { return S.view.server && S.view.server !== 'dm' ? S.servers[S.view.server] : null; }
+function dmPartner(dm) { var id = dm.users.filter(function (x) { return x !== S.me.id; })[0] || S.me.id; return S.users[id] || { id: id, name: 'Unbekannt', color: '#6f84a3', role: 'user' }; }
+function sortedDms() { return Object.values(S.dms).sort(function (a, b) { return (b.last || 0) - (a.last || 0); }); }
+function rank(u) { return u.role === 'owner' ? 0 : u.role === 'admin' ? 1 : 2; }
+function cmpUser(a, b) { return rank(a) - rank(b) || a.name.localeCompare(b.name); }
+function userByName(n) { var l = n.toLowerCase(); for (var id in S.users) if (S.users[id].name.toLowerCase() === l) return S.users[id]; return null; }
+function resolveMention(n) { var tail = ''; while (n.length) { var u = userByName(n); if (u) return [u, tail]; if (n.slice(-1) !== '.' && n.slice(-1) !== '-') break; tail = n.slice(-1) + tail; n = n.slice(0, -1); } return null; }
+function mentionsMe(text) {
+  if (!text || !S.me) return false;
+  var re = new RegExp(MENTION_SRC, 'g'), x;
+  while ((x = re.exec(text))) { var r = resolveMention(x[1]); if (r && r[0].id === S.me.id) return true; }
+  return false;
+}
+function fmt(text) {
+  var t = esc(text);
+  t = t.replace(/\x60([^\x60\n]+)\x60/g, '<code>$1</code>');
+  t = t.replace(/\*\*([^*\n]+)\*\*/g, '<b>$1</b>');
+  t = t.replace(/(^|[^*\w])\*([^*\n]+)\*(?!\w)/g, '$1<i>$2</i>');
+  t = t.replace(/~~([^~\n]+)~~/g, '<s>$1</s>');
+  t = t.replace(new RegExp(MENTION_SRC, 'g'), function (m, n) {
+    var r = resolveMention(n); if (!r) return m;
+    return '<span class="mention' + (r[0].id === S.me.id ? ' me' : '') + '">@' + esc(r[0].name) + '</span>' + r[1];
+  });
+  t = t.replace(/https?:\/\/[^\s<]+/g, function (u) { return '<a href="' + u + '" target="_blank" rel="noopener noreferrer">' + u + '</a>'; });
+  return t.replace(/\n/g, '<br>');
+}
+function avatar(u, size, onclick, dot, cls) {
+  return el('div', { class: 'av' + (cls ? ' ' + cls : ''), title: u.name,
+    style: 'width:' + size + 'px;height:' + size + 'px;background:' + u.color + ';font-size:' + Math.round(size * 0.42) + 'px;' + (onclick ? 'cursor:pointer' : ''),
+    onclick: onclick || null }, (u.name || '?').charAt(0), dot ? el('span', { class: 'dot' + (u.online ? ' on' : '') }) : null);
+}
+function roleBadge(u) {
+  if (u.role === 'owner') return el('span', { class: 'badge-role owner' }, 'Owner');
+  if (u.role === 'admin') return el('span', { class: 'badge-role admin' }, 'Admin');
+  return null;
+}
+var actx = null;
+function beep() {
+  try {
+    actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+    var o = actx.createOscillator(), g = actx.createGain(), t = actx.currentTime;
+    o.type = 'sine'; o.frequency.setValueAtTime(880, t); o.frequency.setValueAtTime(1175, t + 0.08);
+    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.12, t + 0.01); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.3);
+    o.connect(g); g.connect(actx.destination); o.start(t); o.stop(t + 0.32);
+  } catch (e) {}
+}
+
+// ---------- Server-Verbindung ----------
+async function api(path, body) {
+  var opt = { method: body === undefined ? 'GET' : 'POST', headers: {} };
+  if (S.token) opt.headers.Authorization = 'Bearer ' + S.token;
+  if (body !== undefined) { opt.headers['Content-Type'] = 'application/json'; opt.body = JSON.stringify(body); }
+  var r;
+  try { r = await fetch(path, opt); } catch (e) { throw new Error('Keine Verbindung zum Server'); }
+  var d = {}; try { d = await r.json(); } catch (e) {}
+  if (r.status === 401 && S.me) logoutLocal('Bitte neu einloggen.');
+  if (!r.ok) { var err = new Error(d.error || ('Fehler ' + r.status)); err.status = r.status; throw err; }
+  return d;
+}
+async function loadState() {
+  var d = await api('/api/state');
+  S.me = d.me; S.main = d.mainServer; S.emojis = d.emojis; S.colors = d.colors;
+  S.users = {}; d.users.forEach(function (u) { S.users[u.id] = u; });
+  S.servers = {}; d.servers.forEach(function (s) { S.servers[s.id] = s; });
+  S.dms = {}; d.dms.forEach(function (x) { S.dms[x.id] = x; });
+  S.fr = d.friends || { friends: [], incoming: [], outgoing: [] };
+  S.publicUrl = d.publicUrl || '';
+  S.badWords = d.badWords || [];
+  S.lan = d.lan || [];
+  if (S.version && d.version && S.version !== d.version) { location.reload(); return; }
+  S.version = d.version;
+  S.users[S.me.id].online = true; S.me = S.users[S.me.id];
+  APP = d.app;
+}
+function connect() {
+  if (S.es) S.es.close();
+  S.opened = false;
+  var es = new EventSource('/api/events?token=' + encodeURIComponent(S.token));
+  S.es = es;
+  es.onopen = function () { if (S.opened) resync(); S.opened = true; $('conn').classList.add('hidden'); };
+  es.onerror = function () {
+    if (S.es !== es) return;
+    $('conn').classList.remove('hidden');
+    if (es.readyState === 2) setTimeout(function () { if (S.es === es && S.me) api('/api/state').then(function () { connect(); resync(); }, function () {}); }, 3000);
+  };
+  es.onmessage = function (ev) { var m; try { m = JSON.parse(ev.data); } catch (e) { return; } handle(m.type, m.data); };
+}
+async function resync() {
+  try {
+    await loadState(); S.msgs = {};
+    if (S.view.server !== 'dm' && !S.servers[S.view.server]) return selectServer(S.main);
+    renderAll(); if (S.view.channel) loadMessages(S.view.channel);
+  } catch (e) {}
+}
+async function loadMessages(ch) {
+  try {
+    var d = await api('/api/messages?channel=' + encodeURIComponent(ch));
+    S.msgs[ch] = d.messages;
+    if (ch === S.view.channel) { S.stick = true; renderMessages(); }
+  } catch (e) { toast(e.message, true); }
+}
+function handle(type, d) {
+  var list, i;
+  switch (type) {
+    case 'message': {
+      var m = d.message; if (d.dm) S.dms[d.dm.id] = d.dm;
+      list = S.msgs[m.channel];
+      if (list && !list.some(function (x) { return x.id === m.id; })) list.push(m);
+      if (S.typing[m.channel]) delete S.typing[m.channel][m.userId];
+      var mine = m.userId === S.me.id, here = m.channel === S.view.channel;
+      if (mine) S.stick = true;
+      if (!mine && (!here || document.hidden)) {
+        if (!here) S.unread[m.channel] = (S.unread[m.channel] || 0) + 1;
+        if (document.hidden) S.hiddenCount++;
+        if (m.channel.indexOf('dm_') === 0 || mentionsMe(m.text)) beep();
+      }
+      if (here) { renderMessages(); renderTyping(); }
+      renderRail(); renderSide(); updateTitle();
+      break;
+    }
+    case 'message_update':
+      list = S.msgs[d.channel];
+      if (list) { i = list.findIndex(function (x) { return x.id === d.id; }); if (i >= 0) list[i] = d; }
+      if (d.channel === S.view.channel) renderMessages();
+      break;
+    case 'message_delete':
+      list = S.msgs[d.channel];
+      if (list) S.msgs[d.channel] = list.filter(function (x) { return x.id !== d.id; });
+      if (d.channel === S.view.channel) renderMessages();
+      break;
+    case 'typing':
+      (S.typing[d.channel] = S.typing[d.channel] || {})[d.userId] = Date.now();
+      renderTyping();
+      break;
+    case 'presence':
+      if (S.users[d.userId]) S.users[d.userId].online = d.online;
+      if (d.userId === S.me.id) S.users[d.userId].online = true;
+      renderMembers(); renderSide(); renderHead();
+      break;
+    case 'user_update':
+      S.users[d.id] = d;
+      if (d.id === S.me.id) { d.online = true; S.me = d; }
+      renderSide(); renderMembers(); renderMessages(); renderRail();
+      break;
+    case 'server_update':
+      S.servers[d.id] = d;
+      if (S.view.server === d.id && S.view.channel && !d.channels.some(function (c) { return c.id === S.view.channel; })) selectServer(d.id);
+      else { renderRail(); renderSide(); renderHead(); renderMembers(); }
+      break;
+    case 'call': onCall(d.from, d.data); break;
+    case 'updating': toast('⬆️ ' + APP + ' bekommt ein Update (' + d.version + ') – gleich geht es automatisch weiter …'); break;
+    case 'reported':
+      toast('🚩 ' + d.by + ' hat eine Nachricht von ' + d.name + ' gemeldet – siehe 🛡️ Protokoll', true);
+      break;
+    case 'blocked':
+      toast('⚠️ ' + d.name + ' wollte ein verbotenes Wort schreiben (' + d.where + ')' + (d.muted ? ' – jetzt 5 Min. stumm' : ''), true);
+      break;
+    case 'tunnel':
+      S.publicUrl = d.url || '';
+      if (S.view.channel === 'friends') renderMessages();
+      var lb = document.querySelector('.box .linkbox'); if (lb) lb.replaceWith(linkBox());
+      break;
+    case 'server_added':
+      toast('🎉 ' + d.by + ' hat dich zu „' + d.name + '“ hinzugefügt!'); beep();
+      break;
+    case 'server_removed':
+      if (S.servers[d.serverId]) {
+        var name = S.servers[d.serverId].name; delete S.servers[d.serverId];
+        if (S.view.server === d.serverId) { toast('Du bist nicht mehr auf „' + name + '“'); selectServer(S.main); } else renderRail();
+      }
+      break;
+    case 'friends': {
+      var prevIn = S.fr.incoming || [];
+      S.fr = d;
+      d.incoming.forEach(function (id) { if (prevIn.indexOf(id) < 0 && S.users[id]) { toast('👋 ' + S.users[id].name + ' möchte mit dir befreundet sein!'); beep(); } });
+      renderFriendsAll();
+      break;
+    }
+    case 'banned': logoutLocal('Du wurdest gebannt.'); break;
+    case 'logout': logoutLocal('Dein Passwort wurde geändert. Bitte neu einloggen.'); break;
+  }
+}
+
+// ---------- Login ----------
+var authMode = 'login';
+function setAuthMode(mode) {
+  authMode = mode; var reg = mode === 'register';
+  $('authTitle').textContent = reg ? 'Konto erstellen' : 'Willkommen zurück!';
+  $('authSub').textContent = reg ? 'Denk dir einen Namen und ein Passwort aus.' : 'Schön, dass du wieder da bist! ❄️';
+  $('authBtn').textContent = reg ? 'Konto erstellen' : 'Einloggen';
+  $('authSwitchText').textContent = reg ? 'Schon ein Konto?' : 'Noch kein Konto?';
+  $('authSwitch').textContent = reg ? 'Einloggen' : 'Registrieren';
+  $('aPass2Wrap').classList.toggle('hidden', !reg);
+  $('aPass').setAttribute('autocomplete', reg ? 'new-password' : 'current-password');
+  $('authErr').textContent = '';
+}
+function showAuth(msg) {
+  $('app').classList.add('hidden'); $('auth').classList.remove('hidden');
+  setAuthMode('login'); if (msg) $('authErr').textContent = msg;
+  document.title = APP;
+}
+function logoutLocal(msg) {
+  if (typeof C !== 'undefined' && C) hangup();
+  if (S.es) { S.es.close(); S.es = null; }
+  S.token = null; S.me = null; S.msgs = {}; S.unread = {};
+  try { localStorage.removeItem('mc_token'); } catch (e) {}
+  closeModal(); closePicker(); showAuth(msg);
+}
+async function logout() { try { await api('/api/logout', {}); } catch (e) {} logoutLocal(); }
+async function start() {
+  try { await loadState(); }
+  catch (e) {
+    if (e.status === 401 || e.status === 403) { S.token = null; try { localStorage.removeItem('mc_token'); } catch (x) {} showAuth(); }
+    else showAuth(e.message);
+    return;
+  }
+  $('auth').classList.add('hidden'); $('app').classList.remove('hidden');
+  connect();
+  var sv = S.savedServer === 'dm' ? 'dm' : (S.servers[S.savedServer] ? S.savedServer : S.main);
+  selectServer(sv);
+}
+
+// ---------- Navigation ----------
+function selectServer(id) {
+  if (id === 'dm') {
+    S.view.server = 'dm';
+    var last = S.lastChan.dm;
+    return openChannel(last && S.dms[last] ? last : 'friends');
+  }
+  var s = S.servers[id] || S.servers[S.main] || Object.values(S.servers)[0];
+  if (!s) return selectServer('dm');
+  S.view.server = s.id;
+  var lc = S.lastChan[s.id];
+  openChannel(s.channels.some(function (c) { return c.id === lc; }) ? lc : s.channels[0].id);
+}
+function openChannel(ch) {
+  S.view.channel = ch; S.editing = null; S.stick = true;
+  if (ch) { S.unread[ch] = 0; S.lastChan[S.view.server] = ch; }
+  try { localStorage.setItem('mc_view', JSON.stringify({ server: S.view.server, lastChan: S.lastChan })); } catch (e) {}
+  $('app').classList.remove('nav-open');
+  renderAll();
+  if (ch && ch !== 'friends' && !S.msgs[ch]) loadMessages(ch);
+  if (window.innerWidth > 760 && ch && ch !== 'friends') $('input').focus();
+}
+function toggleMembers() {
+  var a = $('app');
+  if (window.innerWidth <= 1000) a.classList.toggle('mem-open'); else a.classList.toggle('mem-hidden');
+}
+
+// ---------- Anzeige ----------
+function renderAll() { renderRail(); renderSide(); renderHead(); renderMessages(); renderComposer(); renderMembers(); renderTyping(); updateTitle(); if (typeof renderCall === 'function') renderCall(); }
+function updateTitle() {
+  document.title = (S.hiddenCount ? '(' + S.hiddenCount + ') ' : '') + APP;
+}
+function railItem(o) {
+  return el('div', { class: 'rail-item' + (o.active ? ' active' : '') + (o.unread ? ' unread' : '') + (o.cls ? ' ' + o.cls : ''), title: o.title, onclick: o.onclick },
+    el('div', { class: 'pill' }), el('div', { class: 'icon' }, o.icon), o.badge ? el('div', { class: 'badge' }, o.badge > 99 ? '99+' : o.badge) : null);
+}
+function initials(name) { return name.split(/\s+/).filter(Boolean).slice(0, 2).map(function (w) { return Array.from(w)[0]; }).join('').toUpperCase() || '?'; }
+function renderRail() {
+  if (!S.me) return;
+  var r = $('rail'); r.textContent = '';
+  var dmUnread = 0; Object.keys(S.dms).forEach(function (id) { dmUnread += S.unread[id] || 0; });
+  r.append(railItem({ icon: el('img', { src: '/logo.svg', alt: '' }), cls: 'home', title: 'Freunde & Direktnachrichten', active: S.view.server === 'dm', badge: dmUnread + S.fr.incoming.length, onclick: function () { selectServer('dm'); } }));
+  r.append(el('div', { class: 'rail-sep' }));
+  Object.values(S.servers).sort(function (a, b) { return (b.main ? 1 : 0) - (a.main ? 1 : 0) || a.name.localeCompare(b.name); }).forEach(function (s) {
+    var un = s.channels.some(function (c) { return S.unread[c.id] > 0; });
+    r.append(railItem({ icon: initials(s.name), title: s.name, active: S.view.server === s.id, unread: un, onclick: function () { selectServer(s.id); } }));
+  });
+  r.append(railItem({ icon: '+', title: 'Server erstellen oder beitreten', cls: 'add', onclick: openServerModal }));
+  if (isMod()) r.append(railItem({ icon: '🛡️', title: 'Admin-Bereich', cls: 'adm', onclick: openAdmin }));
+}
+function renderSide() {
+  if (!S.me) return;
+  var head = $('sideHead'), list = $('chanList');
+  head.textContent = ''; list.textContent = '';
+  if (S.view.server === 'dm') {
+    head.classList.remove('click'); head.onclick = null;
+    head.append(el('span', { class: 'nm' }, 'Direktnachrichten'));
+    var inc = S.fr.incoming.length;
+    list.append(el('div', { class: 'chan' + (S.view.channel === 'friends' ? ' active' : '') + (inc ? ' unread' : ''), onclick: function () { openChannel('friends'); } },
+      el('span', { class: 'hash emo' }, '👥'), el('span', { class: 'nm' }, 'Freunde'), inc ? el('span', { class: 'cnt' }, inc) : null));
+    list.append(el('div', { class: 'cat' }, el('span', {}, 'Direktnachrichten'), el('button', { title: 'Neue Nachricht', onclick: openNewDm }, '+')));
+    var dms = sortedDms();
+    if (!dms.length) list.append(el('p', { class: 'muted small pad' }, 'Noch keine Privatnachrichten. Klick auf + oder bei einem Freund auf 💬.'));
+    dms.forEach(function (dm) {
+      var u = dmPartner(dm), n = S.unread[dm.id] || 0;
+      list.append(el('div', { class: 'chan dmrow' + (dm.id === S.view.channel ? ' active' : '') + (n ? ' unread' : ''), onclick: function () { openChannel(dm.id); } },
+        avatar(u, 32, null, true), el('span', { class: 'nm' }, u.name), n ? el('span', { class: 'cnt' }, n) : null));
+    });
+  } else {
+    var s = curServer(); if (!s) return;
+    head.classList.add('click'); head.onclick = openServerInfo;
+    head.append(el('span', { class: 'nm' }, s.name), el('span', {}, '▾'));
+    list.append(el('div', { class: 'cat' }, el('span', {}, 'Textkanäle'),
+      canManage(s) ? el('button', { title: 'Kanal erstellen', onclick: function (e) { e.stopPropagation(); openCreateChannel(s); } }, '+') : null));
+    s.channels.forEach(function (c) {
+      var n = S.unread[c.id] || 0;
+      list.append(el('div', { class: 'chan' + (c.id === S.view.channel ? ' active' : '') + (n ? ' unread' : ''), onclick: function () { openChannel(c.id); } },
+        el('span', { class: 'hash' }, '#'), el('span', { class: 'nm' }, c.name), n ? el('span', { class: 'cnt' }, n > 99 ? '99+' : n) : null));
+    });
+  }
+  var up = $('userPanel'); up.textContent = '';
+  up.append(avatar(S.me, 32, openSettings, true),
+    el('div', { class: 'up' }, el('div', { class: 'nm' }, S.me.name),
+      el('div', { class: 'muted small', style: 'overflow:hidden;text-overflow:ellipsis;white-space:nowrap', title: S.me.about || '' }, S.me.about || (S.me.role === 'owner' ? '👑 Owner' : S.me.role === 'admin' ? '🛡️ Admin' : 'Online'))),
+    el('button', { class: 'iconbtn', title: 'Einstellungen', onclick: openSettings }, '⚙️'));
+}
+function renderHead() {
+  if (!S.me) return;
+  var h = $('chatHead'); h.textContent = '';
+  h.append(el('button', { class: 'iconbtn mobile-only', title: 'Menü', onclick: function () { $('app').classList.toggle('nav-open'); } }, '☰'));
+  var s = curServer(), ch = S.view.channel;
+  if (ch === 'friends') {
+    var tab = function (id, label, badge) {
+      return el('button', { class: 'tab' + (id === 'add' ? ' add' : '') + (S.friendTab === id ? ' on' : ''), onclick: function () {
+        S.friendTab = id; renderMessages(); renderHead();
+        if (id === 'add') { var i = document.querySelector('.addbox input'); if (i) i.focus(); }
+      } }, label, badge ? el('span', { class: 'tb' }, badge) : null);
+    };
+    h.append(el('span', { class: 'hash' }, '👥'), el('span', { class: 'title' }, 'Freunde'), el('div', { class: 'tdiv' }),
+      el('div', { class: 'tabs' }, tab('online', 'Online'), tab('all', 'Alle'), tab('pending', 'Ausstehend', S.fr.incoming.length), tab('add', 'Freund hinzufügen')));
+    h.append(el('div', { style: 'flex:1' }));
+    h.append(el('button', { class: 'iconbtn', title: 'Aktive Freunde', onclick: toggleMembers }, '👥'));
+    return;
+  }
+  if (s) {
+    var c = s.channels.filter(function (x) { return x.id === ch; })[0];
+    h.append(el('span', { class: 'hash' }, '#'), el('span', { class: 'title' }, c ? c.name : ''));
+  } else if (ch && S.dms[ch]) {
+    var u = dmPartner(S.dms[ch]);
+    h.append(el('span', { class: 'hash' }, '@'), el('span', { class: 'title' }, u.name), el('span', { class: 'dot-inline' + (u.online ? ' on' : ''), title: u.online ? 'Online' : 'Offline' }));
+    h.append(el('div', { style: 'flex:1' }), el('button', { class: 'iconbtn', title: u.name + ' anrufen', onclick: function () { startCall(u.id); } }, '📞'),
+      el('button', { class: 'iconbtn', title: 'Profil', onclick: toggleMembers }, '👤'));
+    return;
+  } else h.append(el('span', { class: 'title' }, 'Direktnachrichten'));
+  h.append(el('div', { style: 'flex:1' }));
+  if (s) h.append(el('button', { class: 'iconbtn', title: 'Freunde einladen', onclick: openServerInfo }, '🔗'));
+  h.append(el('button', { class: 'iconbtn', title: 'Mitglieder', onclick: toggleMembers }, '👥'));
+}
+function renderMessages() {
+  if (!S.me) return;
+  var box = $('msgs'), prevTop = box.scrollTop; box.textContent = '';
+  var ch = S.view.channel;
+  if (ch === 'friends') { renderFriends(box); box.scrollTop = 0; return; }
+  if (!ch) {
+    box.append(el('div', { class: 'empty' }, el('div', { class: 'empty-icon' }, '☃️'), el('h3', {}, 'Noch keine Direktnachrichten'),
+      el('p', {}, 'Schreib jemandem privat – nur ihr zwei könnt es lesen.'), el('button', { class: 'btn primary', onclick: openNewDm }, 'Neue Nachricht')));
+    return;
+  }
+  var s = curServer();
+  if (s) {
+    var c = s.channels.filter(function (x) { return x.id === ch; })[0] || { name: '' };
+    box.append(el('div', { class: 'welcome' }, el('div', { class: 'wicon' }, '#'), el('h2', {}, 'Willkommen in #' + c.name + '! ❄️'), el('p', {}, 'Das ist der Anfang vom Kanal #' + c.name + ' auf „' + s.name + '“.')));
+  } else if (S.dms[ch]) {
+    var u = dmPartner(S.dms[ch]);
+    box.append(el('div', { class: 'welcome' }, avatar(u, 80), el('h2', {}, u.name), el('p', {}, 'Das ist der Anfang deiner Direktnachrichten mit ' + u.name + '.')));
+  }
+  var list = S.msgs[ch];
+  if (!list) { box.append(el('div', { class: 'loading' }, 'Lade Nachrichten …')); return; }
+  var prev = null;
+  list.forEach(function (m) {
+    if (!prev || dayKey(prev.ts) !== dayKey(m.ts)) { box.append(el('div', { class: 'daysep' }, el('span', {}, fmtDay(m.ts)))); prev = null; }
+    var grouped = !!prev && prev.userId === m.userId && m.ts - prev.ts < 7 * 60000;
+    box.append(renderMsg(m, grouped)); prev = m;
+  });
+  if (S.stick) box.scrollTop = box.scrollHeight; else box.scrollTop = prevTop;
+  if (S.editing) { var ta = box.querySelector('.editbox textarea'); if (ta) { ta.focus(); ta.selectionStart = ta.selectionEnd = ta.value.length; } }
+}
+function renderMsg(m, grouped) {
+  var u = S.users[m.userId] || { id: m.userId, name: 'Unbekannt', color: '#6f84a3', role: 'user' };
+  var mine = m.userId === S.me.id;
+  var row = el('div', { class: 'msg' + (grouped ? ' grouped' : '') + (mentionsMe(m.text) ? ' mentioned' : '') });
+  row.addEventListener('click', function (e) {
+    if (e.target.closest('a,button,textarea,img,.av,.mname')) return;
+    document.querySelectorAll('.msg.sel').forEach(function (x) { if (x !== row) x.classList.remove('sel'); });
+    row.classList.toggle('sel');
+  });
+  if (grouped) row.append(el('span', { class: 'gtime' }, hhmm(m.ts)));
+  else {
+    row.append(avatar(u, 40, function () { openProfile(u.id); }));
+    row.append(el('div', { class: 'mhead' },
+      el('span', { class: 'mname', style: 'color:' + u.color, onclick: function () { openProfile(u.id); } }, u.name), roleBadge(u),
+      el('span', { class: 'mtime', title: new Date(m.ts).toLocaleString('de-DE') }, fmtTime(m.ts))));
+  }
+  if (S.editing === m.id) {
+    var ta = el('textarea', { rows: Math.min(8, (S.editText.match(/\n/g) || []).length + 1), maxlength: 2000 });
+    ta.value = S.editText;
+    ta.oninput = function () { S.editText = ta.value; };
+    ta.onkeydown = function (e) {
+      if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); saveEdit(m); }
+      else if (e.key === 'Escape') { e.stopPropagation(); S.editing = null; renderMessages(); }
+    };
+    row.append(el('div', { class: 'editbox' }, ta, el('small', {}, 'Esc = abbrechen • Enter = speichern')));
+  } else if (m.text) {
+    row.append(el('div', { class: 'mtext', html: fmt(m.text) },
+      m.edited ? el('span', { class: 'edited', title: 'Bearbeitet: ' + new Date(m.edited).toLocaleString('de-DE') }, ' (bearbeitet)') : null));
+  }
+  if (m.image) {
+    var img = el('img', { class: 'mimg', src: m.image, alt: 'Bild', loading: 'lazy', onclick: function () { openImage(m.image); } });
+    img.onload = function () { if (S.stick) { var b = $('msgs'); b.scrollTop = b.scrollHeight; } };
+    row.append(img);
+  }
+  var re = Object.keys(m.reactions || {});
+  if (re.length) row.append(el('div', { class: 'reacts' }, re.map(function (e) {
+    var ids = m.reactions[e];
+    return el('button', { class: 'react' + (ids.indexOf(S.me.id) >= 0 ? ' mine' : ''), title: ids.map(function (i) { return (S.users[i] || {}).name || '?'; }).join(', '),
+      onclick: function () { react(m, e); } }, e + ' ' + ids.length);
+  })));
+  var s = curServer();
+  var canDel = mine || isMod() || (s && s.ownerId === S.me.id);
+  row.append(el('div', { class: 'mact' },
+    el('button', { title: 'Reagieren', onclick: function (e) { e.stopPropagation(); emojiPicker(e.currentTarget, function (x) { react(m, x); }); } }, '😀'),
+    mine ? el('button', { title: 'Bearbeiten', onclick: function () { startEdit(m); } }, '✏️') : null,
+    canDel ? el('button', { title: 'Löschen', onclick: function () { delMsg(m); } }, '🗑️') : null,
+    !mine ? el('button', { title: 'Melden', onclick: function () { reportMsg(m); } }, '🚩') : null));
+  return row;
+}
+function renderComposer() {
+  var ch = S.view.channel;
+  $('composerWrap').classList.toggle('hidden', !ch || ch === 'friends');
+  if (!ch || ch === 'friends') return;
+  var s = curServer(), ph = 'Nachricht';
+  if (s) { var c = s.channels.filter(function (x) { return x.id === ch; })[0]; ph = 'Nachricht an #' + (c ? c.name : ''); }
+  else if (S.dms[ch]) ph = 'Nachricht an @' + dmPartner(S.dms[ch]).name;
+  $('input').placeholder = ph;
+}
+function renderTyping() {
+  if (!S.me) return;
+  var box = $('typing'), t = S.typing[S.view.channel] || {}, n = Date.now();
+  var names = Object.keys(t).filter(function (uid) { return n - t[uid] < 5000 && uid !== S.me.id && S.users[uid]; }).map(function (uid) { return S.users[uid].name; });
+  var txt = names.length === 1 ? names[0] + ' schreibt …' : names.length === 2 ? names[0] + ' und ' + names[1] + ' schreiben …' : names.length > 2 ? 'Mehrere Leute schreiben …' : '';
+  if (box.dataset.t === txt) return;
+  box.dataset.t = txt; box.textContent = '';
+  if (txt) box.append(el('span', { class: 'dots' }, el('i'), el('i'), el('i')), el('span', {}, txt));
+}
+function memRow(u, s, off) {
+  return el('div', { class: 'mem' + (off ? ' off' : ''), onclick: function () { openProfile(u.id); } },
+    avatar(u, 32, null, true), el('span', { class: 'nm', style: 'color:' + u.color }, u.name),
+    s && u.id === s.ownerId ? el('span', { title: 'Server-Besitzer' }, '👑') : null, roleBadge(u));
+}
+function renderMembers() {
+  if (!S.me) return;
+  var box = $('members'); box.textContent = '';
+  var s = curServer();
+  if (!s && S.view.channel === 'friends') {
+    var onl = S.fr.friends.map(function (id) { return S.users[id]; }).filter(function (u) { return u && u.online && !u.banned; }).sort(cmpUser);
+    box.append(el('div', { class: 'cat' }, 'Gerade online — ' + onl.length));
+    if (!onl.length) box.append(el('p', { class: 'muted small pad' }, 'Gerade ist keiner deiner Freunde online. ❄️'));
+    onl.forEach(function (u) { box.append(memRow(u, null)); });
+    return;
+  }
+  if (!s) {
+    var dm = S.dms[S.view.channel]; if (!dm) return;
+    var u = dmPartner(dm);
+    box.append(el('div', { class: 'mini-prof' }, el('div', { class: 'prof-banner', style: 'background:' + u.color }),
+      avatar(u, 72, function () { openProfile(u.id); }, true, 'prof-av'),
+      el('h3', {}, u.name), roleBadge(u), u.about ? el('p', {}, u.about) : null,
+      el('p', { class: 'muted small' }, 'Dabei seit ' + fmtDate(u.created))));
+    return;
+  }
+  var mem = s.members.map(function (id) { return S.users[id]; }).filter(Boolean).sort(cmpUser);
+  var on = mem.filter(function (u) { return u.online && !u.banned; }), off = mem.filter(function (u) { return !u.online || u.banned; });
+  if (on.length) { box.append(el('div', { class: 'cat' }, 'Online — ' + on.length)); on.forEach(function (u) { box.append(memRow(u, s)); }); }
+  if (off.length) { box.append(el('div', { class: 'cat' }, 'Offline — ' + off.length)); off.forEach(function (u) { box.append(memRow(u, s, true)); }); }
+}
+
+// ---------- Protokoll / Einträge ----------
+function logRow(e, showName) {
+  var u = S.users[e.userId] || { name: '?', color: '#6f84a3' };
+  var kind = e.kind === 'report' ? el('span', { class: 'badge-role', style: 'background:#b7791f' }, '🚩 Gemeldet') : e.kind === 'blocked' ? el('span', { class: 'badge-role admin' }, '🚫 Blockiert') : el('span', { class: 'badge-role ban' }, '💬 Nachricht');
+  return el('div', { class: 'logrow' },
+    el('div', { class: 'loghead' }, showName ? avatar(u, 24, function () { openProfile(u.id); }) : null, showName ? el('b', {}, u.name) : null, kind,
+      el('span', { class: 'muted small' }, fmtTime(e.ts) + ' · ' + (e.where || '')),
+      e.reporter ? el('span', { class: 'muted small' }, '· gemeldet von ' + nameOf(e.reporter)) : null),
+    e.text ? el('div', { class: 'logtext' }, e.text) : null,
+    e.image ? el('img', { src: e.image, class: 'logimg', onclick: function () { openImage(e.image); } }) : null);
+}
+async function openModLog() {
+  modal('📜 Protokoll', el('div', { class: 'muted' }, 'Lade …'), { cls: 'wide' });
+  try {
+    var d = await api('/api/admin/log');
+    modal('📜 Protokoll', el('div', {},
+      el('div', { class: 'row', style: 'margin:0 0 12px' }, el('button', { class: 'btn small', onclick: openAdmin }, '👥 Benutzer'), el('button', { class: 'btn primary small' }, '📜 Protokoll')),
+      el('p', { class: 'small', style: 'margin-bottom:8px' }, 'Hier siehst du alles, was der Wortfilter blockiert hat, und Nachrichten, die jemand mit 🚩 gemeldet hat. Klick auf ein Bild, um die Person zu öffnen (bannen usw.).'),
+      d.log.length ? d.log.map(function (e) { return logRow(e, true); }) : el('p', { class: 'muted pad' }, 'Noch nichts passiert. ❄️')), { cls: 'wide' });
+  } catch (e) { toast(e.message, true); }
+}
+async function openUserLog(u, back) {
+  try {
+    var d = await api('/api/admin/usermsgs?userId=' + encodeURIComponent(u.id));
+    modal('📜 Einträge von ' + u.name, el('div', {},
+      el('div', { class: 'row', style: 'margin:0 0 10px' }, el('button', { class: 'btn small', onclick: function () { (back || openAdmin)(); } }, '← Zurück'), userActions(u, function () { openUserLog(u, back); }, true)),
+      el('h3', {}, '🚫 Blockiert & Gemeldet (' + d.log.length + ')'),
+      d.log.length ? d.log.map(function (e) { return logRow(e, false); }) : el('p', { class: 'muted small' }, 'Nichts – sehr gut! 👍'),
+      el('h3', {}, '💬 Nachrichten auf Servern (' + d.messages.length + ')'),
+      el('p', { class: 'small muted' }, 'Privatchats bleiben privat. Wenn dort was Schlimmes steht, kann der andere es mit 🚩 melden.'),
+      d.messages.length ? d.messages.map(function (m) { return logRow({ ts: m.ts, where: m.where, text: m.text, image: m.image, kind: 'msg' }, false); }) : el('p', { class: 'muted small' }, 'Noch keine Nachrichten auf Servern.')), { cls: 'wide' });
+  } catch (e) { toast(e.message, true); }
+}
+
+// ---------- Anrufe (Ton läuft über den Frostbyte-Server) ----------
+var C = null, ringTimer = null, callTick = null;
+function nameOf(id) { return (S.users[id] || {}).name || 'Jemand'; }
+function dmIdWith(uid) { return 'dm_' + [S.me.id, uid].sort().join('_'); }
+function sig(uid, data) { return api('/api/call/signal', { userId: uid, data: data }); }
+function audioCtx() { actx = actx || new (window.AudioContext || window.webkitAudioContext)(); if (actx.state === 'suspended') actx.resume(); return actx; }
+function ringStart(incoming) {
+  ringStop();
+  var play = function () {
+    try {
+      var ac = audioCtx(), t = ac.currentTime;
+      [0, 0.3].forEach(function (o) {
+        var osc = ac.createOscillator(), g = ac.createGain();
+        osc.frequency.value = incoming ? 660 : 440;
+        g.gain.setValueAtTime(0.0001, t + o); g.gain.exponentialRampToValueAtTime(0.1, t + o + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, t + o + 0.22);
+        osc.connect(g); g.connect(ac.destination); osc.start(t + o); osc.stop(t + o + 0.25);
+      });
+    } catch (e) {}
+  };
+  play(); ringTimer = setInterval(play, 2000);
+}
+function ringStop() { if (ringTimer) { clearInterval(ringTimer); ringTimer = null; } }
+async function getMic() {
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) throw new Error('Mikrofon geht über diese Adresse nicht. Öffne Frostbyte über den Internet-Link (https://…).');
+  try { return await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } }); }
+  catch (e) { throw new Error('Kein Zugriff aufs Mikrofon – bitte erlauben 🎤'); }
+}
+async function startCall(uid) {
+  if (C) return toast('Du bist schon in einem Anruf', true);
+  if (!S.users[uid]) return;
+  audioCtx();
+  var id = Math.random().toString(36).slice(2) + Date.now().toString(36);
+  var call = C = { peer: uid, id: id, state: 'outgoing', muted: false, deaf: false };
+  if (S.view.channel !== dmIdWith(uid)) await openDm(uid);
+  renderCall();
+  try { call.stream = await getMic(); } catch (e) { toast(e.message, true); return cleanupCall(); }
+  if (C !== call) { call.stream.getTracks().forEach(function (t) { t.stop(); }); return; }
+  try { await sig(uid, { type: 'invite', id: id }); } catch (e) { toast(e.message, true); return cleanupCall(); }
+  if (C !== call) return;
+  connectVoice(call); // sofort in die Ton-Leitung: sobald der andere rangeht, kommt "ready"
+  ringStart(false);
+  call.timeout = setTimeout(function () { if (C === call && call.state === 'outgoing') { toast(nameOf(uid) + ' geht nicht ran 📵'); hangup(); } }, 40000);
+}
+function setTalk(key, on) {
+  var prop = key === 'me' ? 'me' : 'peerTalk';
+  if (!C || C[prop] === on) return;
+  C[prop] = on;
+  document.querySelectorAll('[data-talk="' + key + '"]').forEach(function (e) { e.classList.toggle('talk', on); });
+}
+// Ton-Verbindung aufbauen: Mikro -> 16 kHz -> Server -> anderer Teilnehmer
+function connectVoice(call) {
+  var ac = audioCtx();
+  var proto = location.protocol === 'https:' ? 'wss://' : 'ws://';
+  var ws = new WebSocket(proto + location.host + '/api/voice?token=' + encodeURIComponent(S.token) + '&call=' + encodeURIComponent(call.id));
+  ws.binaryType = 'arraybuffer';
+  call.ws = ws;
+  var src = ac.createMediaStreamSource(call.stream);
+  var proc = ac.createScriptProcessor(2048, 1, 1);
+  var sink = ac.createGain(); sink.gain.value = 0;
+  src.connect(proc); proc.connect(sink); sink.connect(ac.destination);
+  call.nodes = [src, proc, sink];
+  var ratio = ac.sampleRate / 16000, playAt = 0, quietMe = 0, quietPeer = 0;
+  proc.onaudioprocess = function (e) {
+    if (C !== call) return;
+    var inp = e.inputBuffer.getChannelData(0), n = Math.floor(inp.length / ratio), out = new Int16Array(n), lvl = 0;
+    for (var i = 0; i < n; i++) {
+      var s0 = Math.floor(i * ratio), s1 = Math.min(inp.length, Math.floor((i + 1) * ratio)), sum = 0;
+      for (var j = s0; j < s1; j++) sum += inp[j];
+      var v = sum / Math.max(1, s1 - s0);
+      lvl += v * v;
+      out[i] = Math.max(-32768, Math.min(32767, v * 32767));
+    }
+    lvl = Math.sqrt(lvl / Math.max(1, n));
+    var talking = !call.muted && lvl > 0.02;
+    if (talking) quietMe = 0; else quietMe++;
+    setTalk('me', talking || (quietMe < 4 && call.me));
+    if (!call.muted && call.state === 'active' && ws.readyState === 1 && ws.bufferedAmount < 64000) ws.send(out.buffer);
+  };
+  ws.onmessage = function (ev) {
+    if (C !== call) return;
+    if (typeof ev.data === 'string') {
+      if (ev.data === 'ready') { ringStop(); call.state = 'active'; if (!call.start) call.start = Date.now(); clearTimeout(call.timeout); renderCall(); beep(); }
+      else if (ev.data === 'left') { if (call.state === 'active') { toast('📞 ' + nameOf(call.peer) + ' hat aufgelegt'); cleanupCall(); } }
+      else if (ev.data === 'end') { toast('📞 Anruf beendet'); cleanupCall(); }
+      return;
+    }
+    var pcm = new Int16Array(ev.data); if (!pcm.length) return;
+    var buf = ac.createBuffer(1, pcm.length, 16000), ch = buf.getChannelData(0), lvl = 0;
+    for (var i = 0; i < pcm.length; i++) { ch[i] = pcm[i] / 32768; lvl += ch[i] * ch[i]; }
+    lvl = Math.sqrt(lvl / pcm.length);
+    if (lvl > 0.02) quietPeer = 0; else quietPeer++;
+    setTalk('peer', lvl > 0.02 || (quietPeer < 4 && call.peerTalk));
+    if (call.deaf) return;
+    var now = ac.currentTime;
+    if (playAt < now + 0.04 || playAt > now + 0.6) playAt = now + 0.08;
+    var bs = ac.createBufferSource(); bs.buffer = buf; bs.connect(ac.destination); bs.start(playAt);
+    playAt += buf.duration;
+  };
+  ws.onclose = function () {
+    if (C !== call || call.state === 'ended') return;
+    toast(call.state === 'active' ? 'Ton-Verbindung getrennt' : 'Anruf konnte nicht verbunden werden', true);
+    hangup();
+  };
+  call.ping = setInterval(function () { if (ws.readyState === 1) ws.send('ping'); }, 20000);
+}
+async function onCall(from, d) {
+  if (!d || !d.type) return;
+  if (d.type === 'invite') {
+    if (C) { sig(from, { type: 'busy', id: d.id }).catch(function () {}); return; }
+    var inc = C = { peer: from, id: d.id, state: 'incoming', muted: false, deaf: false };
+    renderCall(); ringStart(true);
+    try { if (navigator.vibrate) navigator.vibrate([400, 200, 400, 200, 400]); } catch (e) {}
+    if (document.hidden) { S.hiddenCount++; updateTitle(); }
+    inc.timeout = setTimeout(function () { if (C === inc && inc.state === 'incoming') cleanupCall(); }, 40000);
+    return;
+  }
+  if (!C || C.peer !== from || C.id !== d.id) return;
+  var call = C;
+  switch (d.type) {
+    case 'accept': ringStop(); if (call.state === 'outgoing') { call.state = 'connecting'; renderCall(); } if (!call.ws) connectVoice(call); break;
+    case 'decline': toast(nameOf(from) + ' hat abgelehnt'); cleanupCall(); break;
+    case 'busy': toast(nameOf(from) + ' telefoniert gerade'); cleanupCall(); break;
+    case 'hangup': toast('📞 ' + nameOf(from) + ' hat aufgelegt'); cleanupCall(); break;
+  }
+}
+async function acceptCall() {
+  var call = C; if (!call || call.state !== 'incoming') return;
+  ringStop(); clearTimeout(call.timeout); audioCtx();
+  try { call.stream = await getMic(); }
+  catch (e) { toast(e.message, true); sig(call.peer, { type: 'decline', id: call.id }).catch(function () {}); return cleanupCall(); }
+  if (C !== call) { call.stream.getTracks().forEach(function (t) { t.stop(); }); return; }
+  call.state = 'connecting';
+  if (S.view.channel !== dmIdWith(call.peer)) await openDm(call.peer);
+  renderCall();
+  try { await sig(call.peer, { type: 'accept', id: call.id }); } catch (e) { toast(e.message, true); return cleanupCall(); }
+  connectVoice(call);
+}
+function declineCall() { if (!C) return; sig(C.peer, { type: 'decline', id: C.id }).catch(function () {}); cleanupCall(); }
+function hangup() { if (!C) return; sig(C.peer, { type: 'hangup', id: C.id }).catch(function () {}); cleanupCall(); }
+function cleanupCall() {
+  ringStop();
+  if (!C) return renderCall();
+  var c = C; C = null; c.state = 'ended';
+  clearTimeout(c.timeout); clearInterval(c.ping);
+  if (c.ws) try { c.ws.close(); } catch (e) {}
+  if (c.nodes) c.nodes.forEach(function (n) { try { n.disconnect(); } catch (e) {} });
+  if (c.stream) c.stream.getTracks().forEach(function (t) { t.stop(); });
+  renderCall();
+}
+function toggleMute() { if (!C) return; C.muted = !C.muted; if (C.muted) setTalk('me', false); renderCall(); }
+function toggleDeaf() { if (!C) return; C.deaf = !C.deaf; renderCall(); }
+function fmtDur(ms) { var s = Math.floor(ms / 1000); return pad(Math.floor(s / 60)) + ':' + pad(s % 60); }
+function callStatus() {
+  if (!C) return '';
+  if (C.state === 'outgoing') return 'Klingelt bei ' + nameOf(C.peer) + ' …';
+  if (C.state === 'incoming') return nameOf(C.peer) + ' ruft dich an …';
+  if (C.state === 'connecting') return 'Verbinde …';
+  return '🟢 Verbunden · ' + fmtDur(Date.now() - C.start);
+}
+function callBtns(big) {
+  var cls = big ? 'cbtn' : 'vbtn';
+  return [
+    el('button', { class: cls + (C.muted ? ' on' : ''), title: C.muted ? 'Mikrofon an' : 'Stummschalten', onclick: toggleMute }, C.muted ? '🔇' : '🎤'),
+    el('button', { class: cls + (C.deaf ? ' on' : ''), title: C.deaf ? 'Ton an' : 'Ton aus (nichts hören)', onclick: toggleDeaf }, C.deaf ? '🔈' : '🎧'),
+    el('button', { class: cls + ' red hang', title: 'Auflegen', onclick: hangup }, el('span', {}, '📞'))
+  ];
+}
+function renderCall() {
+  clearInterval(callTick);
+  var box = $('callbox'), panel = $('callpanel'), bar = $('voicebar');
+  box.textContent = ''; panel.textContent = ''; bar.textContent = '';
+  if (!C) { box.className = 'hidden'; panel.classList.add('hidden'); bar.classList.add('hidden'); return; }
+  var u = S.users[C.peer] || { name: '?', color: '#6f84a3' };
+  // 1) Eingehender Anruf: Popup oben in der Mitte (wie Discord)
+  if (C.state === 'incoming') {
+    box.className = 'ring';
+    box.append(el('div', { class: 'cb-av' }, avatar(u, 80)), el('div', { class: 'cname' }, u.name), el('div', { class: 'cstat' }, 'Eingehender Anruf …'),
+      el('div', { class: 'cb-btns' },
+        el('button', { class: 'cbtn red hang', title: 'Ablehnen', onclick: declineCall }, el('span', {}, '📞')),
+        el('button', { class: 'cbtn green', title: 'Annehmen', onclick: acceptCall }, '📞')));
+  } else box.className = 'hidden';
+  // 2) Großer Anruf-Bereich oben im Chat mit dieser Person
+  var waiting = C.state !== 'active';
+  if (C.state !== 'incoming' && S.view.channel === dmIdWith(C.peer)) {
+    panel.classList.remove('hidden');
+    panel.append(
+      el('div', { class: 'cp-avs' },
+        el('div', { class: 'cp-av' + (C.me ? ' talk' : ''), 'data-talk': 'me' }, avatar(S.me, 84), C.muted ? el('span', { class: 'cp-ico' }, '🔇') : null, el('div', { class: 'cp-nm' }, S.me.name)),
+        el('div', { class: 'cp-av' + (waiting ? ' wait' : '') + (C.peerTalk ? ' talk' : ''), 'data-talk': 'peer' }, avatar(u, 84), el('div', { class: 'cp-nm' }, u.name))),
+      el('div', { class: 'cp-stat' + (waiting ? '' : ' ok'), id: 'cpstat' }, callStatus()),
+      el('div', { class: 'cp-btns' }, callBtns(true)));
+  } else panel.classList.add('hidden');
+  // 3) Sprachverbindung unten links (wie Discord)
+  if (C.state !== 'incoming') {
+    bar.classList.remove('hidden');
+    bar.append(el('div', { class: 'vb-info', title: 'Zum Anruf', onclick: function () { openDm(C.peer); } },
+      el('div', { class: 'vb-title' + (waiting ? ' wait' : '') }, waiting ? '📶 Verbinde …' : '📶 Sprachverbindung'),
+      el('div', { class: 'vb-sub', id: 'vbsub' }, u.name + (C.start ? ' · ' + fmtDur(Date.now() - C.start) : ''))));
+    callBtns(false).forEach(function (btn) { bar.append(btn); });
+  } else bar.classList.add('hidden');
+  if (C.state === 'active') callTick = setInterval(function () {
+    if (!C || !C.start) return;
+    var a = $('cpstat'); if (a) a.textContent = callStatus();
+    var b2 = $('vbsub'); if (b2) b2.textContent = nameOf(C.peer) + ' · ' + fmtDur(Date.now() - C.start);
+  }, 1000);
+}
+window.addEventListener('beforeunload', function () {
+  if (C && S.token) fetch('/api/call/signal', { method: 'POST', keepalive: true, headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + S.token },
+    body: JSON.stringify({ userId: C.peer, data: { type: 'hangup', id: C.id } }) });
+});
+
+// ---------- Internet-Link ----------
+function linkBox() {
+  if (!S.publicUrl) return el('div', { class: 'linkbox' }, el('b', {}, '🌍 Freunde von woanders'),
+    el('p', { class: 'small muted' }, 'Der Internet-Link wird gerade erstellt … (dafür muss dein PC mit dem Internet verbunden sein)'));
+  return el('div', { class: 'linkbox' }, el('b', {}, '🌍 Freunde von woanders einladen'),
+    el('p', { class: 'small muted' }, 'Schick ihnen diesen Link. Dort klicken sie auf „Registrieren“ – danach kannst du sie mit ihrem Namen adden.'),
+    el('div', { class: 'row', style: 'margin-top:6px' }, el('code', { class: 'link' }, S.publicUrl),
+      el('button', { class: 'btn primary small', onclick: function () { copy(S.publicUrl); } }, 'Link kopieren')),
+    el('p', { class: 'small muted', style: 'margin-top:6px' }, '⚠️ Der Link ändert sich bei jedem Start von Frostbyte und geht nur, solange der PC mit Frostbyte an ist.'),
+    S.lan && S.lan.length ? el('p', { class: 'small muted', style: 'margin-top:4px' }, '🏠 Im gleichen WLAN geht auch: ' + S.lan.join('  oder  ')) : null);
+}
+
+// ---------- Freunde ----------
+function isFriend(id) { return S.fr.friends.indexOf(id) >= 0; }
+function renderFriendsAll() { renderRail(); renderSide(); if (S.view.channel === 'friends') { renderHead(); renderMessages(); renderMembers(); } }
+async function friendCall(path, body, okMsg) {
+  try { var d = await api(path, body); S.fr = d.state; if (okMsg) toast(typeof okMsg === 'function' ? okMsg(d) : okMsg); renderFriendsAll(); return d; }
+  catch (e) { toast(e.message, true); }
+}
+function sendReq(uid) { return friendCall('/api/friends/request', { userId: uid }, function (d) { return d.accepted ? '🎉 Ihr seid jetzt Freunde!' : '✅ Anfrage an ' + d.user.name + ' gesendet'; }); }
+function acceptReq(uid) { return friendCall('/api/friends/accept', { userId: uid }, '🎉 Ihr seid jetzt Freunde!'); }
+function declineReq(uid) { return friendCall('/api/friends/decline', { userId: uid }); }
+function removeFriend(u) {
+  confirmBox(u.name + ' als Freund entfernen?', 'Entfernen', async function () { var d = await api('/api/friends/remove', { userId: u.id }); S.fr = d.state; renderFriendsAll(); });
+}
+function fbtn(icon, title, fn, cls) { return el('button', { class: 'fbtn' + (cls ? ' ' + cls : ''), title: title, onclick: function (e) { e.stopPropagation(); fn(); } }, icon); }
+function friendRow(u, actions, sub) {
+  return el('div', { class: 'frow', onclick: function () { openProfile(u.id); } }, avatar(u, 36, null, true),
+    el('div', { class: 'finfo' }, el('div', { class: 'fname' }, u.name, roleBadge(u)), el('div', { class: 'muted small' }, sub || (u.online ? 'Online' : 'Offline'))),
+    el('div', { class: 'facts' }, actions));
+}
+function friendEmpty(text) {
+  return el('div', { class: 'empty', style: 'height:auto;padding-top:60px' }, el('div', { class: 'empty-icon' }, '☃️'), el('p', {}, text),
+    el('button', { class: 'btn green', onclick: function () { S.friendTab = 'add'; renderMessages(); renderHead(); var i = document.querySelector('.addbox input'); if (i) i.focus(); } }, 'Freund hinzufügen'));
+}
+function renderFriends(box) {
+  var w = el('div', { class: 'friends' }), tab = S.friendTab;
+  var users = function (ids) { return ids.map(function (id) { return S.users[id]; }).filter(Boolean); };
+  if (tab === 'add') {
+    var inp2 = el('input', { placeholder: 'Benutzername eingeben, z. B. Maxi', maxlength: 20 });
+    var msg = el('div', { class: 'fmsg' });
+    var go = async function () {
+      var n = inp2.value.trim(); if (!n) return;
+      try {
+        var d = await api('/api/friends/request', { name: n }); S.fr = d.state;
+        msg.className = 'fmsg ok'; msg.textContent = d.accepted ? '🎉 Du und ' + d.user.name + ' seid jetzt Freunde!' : '✅ Freundschaftsanfrage an ' + d.user.name + ' gesendet!';
+        inp2.value = ''; renderRail(); renderSide(); renderHead();
+      } catch (e) { msg.className = 'fmsg bad'; msg.textContent = e.message; }
+    };
+    inp2.onkeydown = function (e) { if (e.key === 'Enter') go(); };
+    w.append(linkBox(), el('h2', { class: 'fhead' }, 'Freund hinzufügen'),
+      el('p', { class: 'muted' }, 'Gib den Frostbyte-Namen von deinem Freund ein (nicht den echten Discord-Namen!). Er bekommt dann eine Freundschaftsanfrage.'),
+      el('div', { class: 'addbox' }, inp2, el('button', { class: 'btn primary', onclick: go }, 'Anfrage senden')), msg);
+    var sugg = Object.values(S.users).filter(function (u) {
+      return u.id !== S.me.id && !u.banned && !isFriend(u.id) && S.fr.outgoing.indexOf(u.id) < 0 && S.fr.incoming.indexOf(u.id) < 0;
+    }).sort(function (a, b) { return (b.online ? 1 : 0) - (a.online ? 1 : 0) || a.name.localeCompare(b.name); }).slice(0, 10);
+    if (sugg.length) {
+      w.append(el('div', { class: 'fcat' }, 'Leute auf ' + APP + ' — einfach adden'));
+      sugg.forEach(function (u) { w.append(friendRow(u, [fbtn('➕', 'Freundschaftsanfrage senden', function () { sendReq(u.id); }, 'ok')])); });
+    }
+    box.append(w); return;
+  }
+  if (tab === 'pending') {
+    var inc = users(S.fr.incoming), out = users(S.fr.outgoing);
+    if (!inc.length && !out.length) { box.append(friendEmpty('Keine offenen Freundschaftsanfragen.')); return; }
+    if (inc.length) {
+      w.append(el('div', { class: 'fcat' }, 'Eingehend — ' + inc.length));
+      inc.forEach(function (u) { w.append(friendRow(u, [fbtn('✓', 'Annehmen', function () { acceptReq(u.id); }, 'ok'), fbtn('✕', 'Ablehnen', function () { declineReq(u.id); }, 'no')], 'Möchte mit dir befreundet sein')); });
+    }
+    if (out.length) {
+      w.append(el('div', { class: 'fcat' }, 'Ausgehend — ' + out.length));
+      out.forEach(function (u) { w.append(friendRow(u, [fbtn('✕', 'Anfrage zurückziehen', function () { declineReq(u.id); }, 'no')], 'Anfrage gesendet – wartet …')); });
+    }
+    box.append(w); return;
+  }
+  var fr = users(S.fr.friends).sort(function (a, b) { return a.name.localeCompare(b.name); });
+  if (tab === 'online') fr = fr.filter(function (u) { return u.online && !u.banned; });
+  if (!fr.length) { box.append(friendEmpty(tab === 'online' ? 'Gerade ist keiner deiner Freunde online.' : 'Du hast noch keine Freunde hinzugefügt. Leg los!')); return; }
+  w.append(el('div', { class: 'fcat' }, (tab === 'online' ? 'Online' : 'Alle Freunde') + ' — ' + fr.length));
+  fr.forEach(function (u) { w.append(friendRow(u, [fbtn('📞', 'Anrufen', function () { startCall(u.id); }, 'ok'), fbtn('💬', 'Nachricht schreiben', function () { openDm(u.id); }), fbtn('✕', 'Freund entfernen', function () { removeFriend(u); }, 'no')])); });
+  box.append(w);
+}
+
+// ---------- Schneefall ----------
+var snow = { on: true, flakes: [] };
+try { snow.on = localStorage.getItem('fb_snow') !== '0'; } catch (e) {}
+function snowStart() {
+  var c = $('snow'), ctx = c.getContext('2d');
+  function size() { var d = window.devicePixelRatio || 1; c.width = innerWidth * d; c.height = innerHeight * d; }
+  size(); window.addEventListener('resize', size);
+  function flake(any) { return { x: Math.random(), y: any ? Math.random() : -0.03, r: 0.8 + Math.random() * 2.4, s: 0.0007 + Math.random() * 0.0013, w: Math.random() * 6.28, o: 0.3 + Math.random() * 0.6 }; }
+  var n = Math.min(110, Math.round(innerWidth / 12));
+  for (var i = 0; i < n; i++) snow.flakes.push(flake(true));
+  function frame() {
+    requestAnimationFrame(frame);
+    if (document.hidden) return;
+    var login = !$('auth').classList.contains('hidden'), show = snow.on || login;
+    c.style.display = show ? 'block' : 'none';
+    if (!show) return;
+    var W = c.width, H = c.height, d = window.devicePixelRatio || 1, op = login ? 1 : 0.55;
+    ctx.clearRect(0, 0, W, H); ctx.fillStyle = '#fff';
+    for (var i = 0; i < snow.flakes.length; i++) {
+      var f = snow.flakes[i];
+      f.y += f.s; f.w += 0.012; f.x += Math.sin(f.w) * 0.0005;
+      if (f.y > 1.03) { snow.flakes[i] = flake(false); continue; }
+      ctx.globalAlpha = f.o * op; ctx.beginPath(); ctx.arc(f.x * W, f.y * H, f.r * d, 0, 6.283); ctx.fill();
+    }
+  }
+  frame();
+}
+
+// ---------- Nachrichten-Aktionen ----------
+var sending = false;
+async function sendMsg() {
+  if (sending || !S.view.channel) return;
+  var inp = $('input'), text = inp.value.trim();
+  if (!text && !S.pendingImage) return;
+  sending = true; $('btnSend').disabled = true;
+  try {
+    await api('/api/messages', { channel: S.view.channel, text: text, image: S.pendingImage || undefined });
+    inp.value = ''; autoGrow(); S.pendingImage = null; renderPreview(); S.stick = true; S.lastTyping = 0;
+  } catch (e) { toast(e.message, true); }
+  sending = false; $('btnSend').disabled = false; inp.focus();
+}
+function startEdit(m) { S.editing = m.id; S.editText = m.text || ''; S.stick = false; renderMessages(); }
+async function saveEdit(m) {
+  var t = S.editText.trim();
+  if (t === m.text) { S.editing = null; return renderMessages(); }
+  if (!t && !m.image) return delMsg(m);
+  try { await api('/api/messages/edit', { channel: m.channel, id: m.id, text: t }); m.text = t; m.edited = Date.now(); S.editing = null; renderMessages(); $('input').focus(); }
+  catch (e) { toast(e.message, true); }
+}
+function reportMsg(m) {
+  confirmBox('Diese Nachricht dem Owner/den Admins melden? Sie sehen dann, was hier steht.', 'Melden', async function () {
+    await api('/api/report', { channel: m.channel, id: m.id }); toast('🚩 Gemeldet – danke!');
+  });
+}
+function delMsg(m) { confirmBox('Diese Nachricht wirklich löschen?', 'Löschen', function () { return api('/api/messages/delete', { channel: m.channel, id: m.id }); }); }
+async function react(m, e) { try { await api('/api/react', { channel: m.channel, id: m.id, emoji: e }); } catch (x) { toast(x.message, true); } }
+function autoGrow() { var i = $('input'); i.style.height = 'auto'; i.style.height = Math.min(i.scrollHeight, 200) + 'px'; }
+function insertAtCursor(inp, txt) {
+  var s = inp.selectionStart == null ? inp.value.length : inp.selectionStart, e = inp.selectionEnd == null ? s : inp.selectionEnd;
+  inp.value = inp.value.slice(0, s) + txt + inp.value.slice(e);
+  inp.selectionStart = inp.selectionEnd = s + txt.length; inp.focus(); autoGrow();
+}
+function setImage(file) {
+  if (!file) return;
+  if (!/^image\/(png|jpeg|gif|webp)$/.test(file.type)) return toast('Nur PNG, JPG, GIF oder WEBP', true);
+  if (file.size > 5 * 1024 * 1024) return toast('Bild ist zu groß (max. 5 MB)', true);
+  var r = new FileReader();
+  r.onload = function () { S.pendingImage = r.result; renderPreview(); $('input').focus(); };
+  r.readAsDataURL(file);
+}
+function renderPreview() {
+  var p = $('preview'); p.textContent = '';
+  p.classList.toggle('hidden', !S.pendingImage);
+  if (S.pendingImage) p.append(el('img', { src: S.pendingImage, alt: 'Vorschau' }), el('div', { style: 'flex:1' }),
+    el('button', { class: 'iconbtn', title: 'Entfernen', onclick: function () { S.pendingImage = null; renderPreview(); } }, '✕'));
+}
+
+// ---------- Emoji-Auswahl ----------
+var pickerOff = null;
+function closePicker() { var p = $('picker'); if (p) p.remove(); if (pickerOff) { document.removeEventListener('click', pickerOff); pickerOff = null; } }
+function emojiPicker(anchor, onPick) {
+  closePicker();
+  var p = el('div', { class: 'picker', id: 'picker' }, S.emojis.map(function (e) {
+    return el('button', { onclick: function (ev) { ev.stopPropagation(); closePicker(); onPick(e); } }, e);
+  }));
+  document.body.append(p);
+  var r = anchor.getBoundingClientRect(), w = p.offsetWidth, h = p.offsetHeight;
+  var left = Math.max(8, Math.min(r.right - w, window.innerWidth - w - 8)), top = r.top - h - 8;
+  if (top < 8) top = Math.min(r.bottom + 8, window.innerHeight - h - 8);
+  p.style.left = left + 'px'; p.style.top = top + 'px';
+  setTimeout(function () { pickerOff = function (e) { if (!p.contains(e.target)) closePicker(); }; document.addEventListener('click', pickerOff); }, 0);
+}
+
+// ---------- Fenster (Modals) ----------
+function modal(title, content, opts) {
+  opts = opts || {};
+  var m = $('modal'); m.textContent = '';
+  var box = el('div', { class: 'box' + (opts.cls ? ' ' + opts.cls : '') },
+    title ? el('div', { class: 'mtitle' }, el('h2', {}, title), el('button', { class: 'x', title: 'Schließen', onclick: closeModal }, '✕')) : null, content);
+  m.append(box); m.classList.remove('hidden');
+  m.onclick = function (e) { if (e.target === m) closeModal(); };
+}
+function closeModal() { $('modal').classList.add('hidden'); $('modal').textContent = ''; }
+function confirmBox(text, yes, fn, back) {
+  var err = el('div', { class: 'err' });
+  modal('Bist du sicher?', el('div', {}, el('p', {}, text), err,
+    el('div', { class: 'row end' },
+      el('button', { class: 'btn', onclick: function () { if (back) back(); else closeModal(); } }, 'Abbrechen'),
+      el('button', { class: 'btn red', onclick: async function (ev) {
+        var b = ev.currentTarget; b.disabled = true;
+        try { await fn(); if (back) back(); else closeModal(); } catch (e) { err.textContent = e.message; b.disabled = false; }
+      } }, yes))));
+}
+function openImage(src) {
+  modal(null, el('div', {}, el('img', { src: src, alt: 'Bild', style: 'max-width:92vw;max-height:82vh;display:block;margin:auto;border-radius:8px' }),
+    el('p', { style: 'text-align:center;margin-top:8px' }, el('a', { href: src, target: '_blank', rel: 'noopener', style: 'color:#00a8fc' }, 'Original öffnen'))), { cls: 'imgview' });
+}
+function openServerModal() {
+  var nameIn = el('input', { placeholder: 'z. B. Meine Freunde', maxlength: 40 });
+  var codeIn = el('input', { placeholder: 'z. B. AB12CD34', maxlength: 20, style: 'text-transform:uppercase' });
+  var err = el('div', { class: 'err' });
+  async function go(path, body) {
+    try { var d = await api(path, body); S.servers[d.server.id] = d.server; closeModal(); selectServer(d.server.id); toast('Willkommen auf „' + d.server.name + '“ 🎉'); }
+    catch (e) { err.textContent = e.message; }
+  }
+  nameIn.onkeydown = function (e) { if (e.key === 'Enter') go('/api/servers/create', { name: nameIn.value }); };
+  codeIn.onkeydown = function (e) { if (e.key === 'Enter') go('/api/servers/join', { invite: codeIn.value }); };
+  modal('Server hinzufügen', el('div', {},
+    el('h3', {}, '🏠 Eigenen Server erstellen'), el('label', {}, 'Servername'),
+    el('div', { class: 'row', style: 'margin-top:0' }, nameIn, el('button', { class: 'btn primary', onclick: function () { go('/api/servers/create', { name: nameIn.value }); } }, 'Erstellen')),
+    el('div', { class: 'or' }, '— ODER —'),
+    el('h3', {}, '🔑 Einem Server beitreten'), el('label', {}, 'Einladungscode'),
+    el('div', { class: 'row', style: 'margin-top:0' }, codeIn, el('button', { class: 'btn green', onclick: function () { go('/api/servers/join', { invite: codeIn.value }); } }, 'Beitreten')),
+    err));
+  nameIn.focus();
+}
+function openCreateChannel(s) {
+  var inp = el('input', { placeholder: 'neuer-kanal', maxlength: 30 }), err = el('div', { class: 'err' });
+  async function go() {
+    try { var d = await api('/api/channels/create', { serverId: s.id, name: inp.value }); S.servers[d.server.id] = d.server; closeModal(); openChannel(d.server.channels[d.server.channels.length - 1].id); }
+    catch (e) { err.textContent = e.message; }
+  }
+  inp.onkeydown = function (e) { if (e.key === 'Enter') go(); };
+  modal('Kanal erstellen', el('div', {}, el('label', {}, 'Kanalname'), inp, err,
+    el('div', { class: 'row end' }, el('button', { class: 'btn', onclick: closeModal }, 'Abbrechen'), el('button', { class: 'btn primary', onclick: go }, 'Erstellen'))));
+  inp.focus();
+}
+function openServerInfo() {
+  var s = curServer(); if (!s) return;
+  var err = el('div', { class: 'err' });
+  function upd(d) { S.servers[d.server.id] = d.server; renderAll(); openServerInfo(); }
+  var addIn = el('input', { placeholder: 'Benutzername eingeben, z. B. Maxi', maxlength: 20 });
+  var addMsg = el('div', { class: 'fmsg' });
+  var addUser = async function (body) {
+    try {
+      var d = await api('/api/servers/add', Object.assign({ serverId: s.id }, body));
+      S.servers[d.server.id] = d.server; renderAll(); openServerInfo();
+      toast('✅ ' + d.added + ' ist jetzt auf „' + s.name + '“');
+    } catch (e) { addMsg.className = 'fmsg bad'; addMsg.textContent = e.message; }
+  };
+  addIn.onkeydown = function (e) { if (e.key === 'Enter' && addIn.value.trim()) addUser({ name: addIn.value.trim() }); };
+  var notIn = S.fr.friends.map(function (id) { return S.users[id]; }).filter(function (u) { return u && !u.banned && s.members.indexOf(u.id) < 0; });
+  var parts = [
+    el('h3', {}, '👋 Leute hinzufügen'),
+    el('p', {}, 'Gib den Namen ein – die Person ist dann sofort auf dem Server.'),
+    el('div', { class: 'row' }, addIn, el('button', { class: 'btn green', onclick: function () { if (addIn.value.trim()) addUser({ name: addIn.value.trim() }); } }, 'Hinzufügen')),
+    addMsg,
+    notIn.length ? el('div', {}, el('label', {}, 'Deine Freunde'), notIn.map(function (u) {
+      return el('div', { class: 'list-item' }, avatar(u, 32, null, true), el('span', { class: 'nm', style: 'flex:1' }, u.name),
+        el('button', { class: 'btn green small', onclick: function () { addUser({ userId: u.id }); } }, '➕ Hinzufügen'));
+    })) : null,
+    linkBox(),
+    el('p', { class: 'small muted', style: 'margin-top:10px' }, 'Oder Einladungscode: ', el('b', { style: 'letter-spacing:2px;color:var(--head)' }, s.invite), ' ',
+      el('a', { href: '#', style: 'color:#00a8fc', onclick: function (e) { e.preventDefault(); copy(s.invite); } }, 'kopieren'))
+  ];
+  if (canManage(s)) {
+    var nameIn = el('input', { maxlength: 40 }); nameIn.value = s.name;
+    var chIn = el('input', { maxlength: 30, placeholder: 'neuer-kanal' });
+    var addCh = async function () { try { upd(await api('/api/channels/create', { serverId: s.id, name: chIn.value })); } catch (e) { err.textContent = e.message; } };
+    chIn.onkeydown = function (e) { if (e.key === 'Enter') addCh(); };
+    parts.push(el('hr'), el('h3', {}, '✏️ Servername'),
+      el('div', { class: 'row', style: 'margin-top:0' }, nameIn, el('button', { class: 'btn primary', onclick: async function () {
+        try { upd(await api('/api/servers/rename', { serverId: s.id, name: nameIn.value })); toast('Gespeichert ✓'); } catch (e) { err.textContent = e.message; } } }, 'Speichern')),
+      el('h3', {}, '# Kanäle'),
+      s.channels.map(function (c) {
+        return el('div', { class: 'list-item' }, el('span', { class: 'hash' }, '#'), el('span', { style: 'flex:1' }, c.name),
+          s.channels.length > 1 ? el('button', { class: 'btn red small', onclick: function () {
+            confirmBox('Kanal #' + c.name + ' und alle Nachrichten darin löschen?', 'Löschen', async function () {
+              var d = await api('/api/channels/delete', { serverId: s.id, channelId: c.id }); S.servers[d.server.id] = d.server; renderAll(); }, openServerInfo);
+          } }, 'Löschen') : null);
+      }),
+      el('div', { class: 'row' }, chIn, el('button', { class: 'btn green', onclick: addCh }, 'Kanal erstellen')));
+  }
+  if (!s.main) {
+    if (s.ownerId === S.me.id || S.me.role === 'owner') parts.push(el('hr'), el('button', { class: 'btn red', onclick: function () {
+      confirmBox('Den Server „' + s.name + '“ mit ALLEN Nachrichten löschen? Das kann man nicht rückgängig machen.', 'Server löschen', async function () {
+        await api('/api/servers/delete', { serverId: s.id }); delete S.servers[s.id]; selectServer(S.main); });
+    } }, '🗑️ Server löschen'));
+    else parts.push(el('hr'), el('button', { class: 'btn red', onclick: function () {
+      confirmBox('Den Server „' + s.name + '“ verlassen?', 'Verlassen', async function () {
+        await api('/api/servers/leave', { serverId: s.id }); delete S.servers[s.id]; selectServer(S.main); });
+    } }, '🚪 Server verlassen'));
+  }
+  parts.push(err);
+  modal(s.name, el('div', {}, parts));
+}
+function openNewDm() {
+  var q = el('input', { placeholder: 'Name suchen …' }), list = el('div', { class: 'ulist' });
+  function draw() {
+    list.textContent = ''; var f = q.value.toLowerCase();
+    Object.values(S.users).filter(function (u) { return u.id !== S.me.id && !u.banned && u.name.toLowerCase().indexOf(f) >= 0; })
+      .sort(function (a, b) { return (b.online ? 1 : 0) - (a.online ? 1 : 0) || a.name.localeCompare(b.name); })
+      .forEach(function (u) { list.append(el('div', { class: 'list-item click', onclick: function () { openDm(u.id); } }, avatar(u, 32, null, true), el('span', { class: 'nm' }, u.name, roleBadge(u)))); });
+    if (!list.children.length) list.append(el('p', { class: 'muted pad' }, 'Niemand gefunden.'));
+  }
+  q.oninput = draw; draw();
+  modal('Neue Direktnachricht', el('div', {}, q, list)); q.focus();
+}
+async function openDm(uid) {
+  try { var d = await api('/api/dm/open', { userId: uid }); S.dms[d.dm.id] = d.dm; closeModal(); S.view.server = 'dm'; openChannel(d.dm.id); }
+  catch (e) { toast(e.message, true); }
+}
+function userActions(u, reopen, compact) {
+  var b = [], me = S.me, sm = compact ? ' small' : '';
+  if (u.id === me.id) return b;
+  if (!compact) {
+    b.push(el('button', { class: 'btn primary', onclick: function () { openDm(u.id); } }, '💬 Nachricht'));
+    b.push(el('button', { class: 'btn green', onclick: function () { closeModal(); startCall(u.id); } }, '📞 Anrufen'));
+    if (isFriend(u.id)) b.push(el('button', { class: 'btn', onclick: function () { removeFriend(u); } }, 'Freund entfernen'));
+    else if (S.fr.incoming.indexOf(u.id) >= 0) b.push(el('button', { class: 'btn green', onclick: async function () { await acceptReq(u.id); if (reopen) reopen(); } }, '✓ Anfrage annehmen'));
+    else if (S.fr.outgoing.indexOf(u.id) >= 0) b.push(el('button', { class: 'btn', disabled: true }, 'Anfrage gesendet'));
+    else if (!u.banned) b.push(el('button', { class: 'btn green', onclick: async function () { await sendReq(u.id); if (reopen) reopen(); } }, '➕ Freund hinzufügen'));
+  }
+  var s = curServer();
+  if (!compact && s && canManage(s) && !s.main && s.members.indexOf(u.id) >= 0 && u.id !== s.ownerId && u.role !== 'owner')
+    b.push(el('button', { class: 'btn red', onclick: function () {
+      confirmBox(u.name + ' aus „' + s.name + '“ kicken?', 'Kicken', async function () {
+        var d = await api('/api/servers/kick', { serverId: s.id, userId: u.id }); S.servers[d.server.id] = d.server; renderAll(); toast(u.name + ' wurde gekickt'); });
+    } }, 'Kicken'));
+  if (isMod() && u.role !== 'owner' && (me.role === 'owner' || u.role === 'user'))
+    b.push(el('button', { class: 'btn ' + (u.banned ? 'green' : 'red') + sm, onclick: function () {
+      confirmBox(u.banned ? u.name + ' entbannen?' : u.name + ' bannen? Die Person kann sich dann nicht mehr einloggen.', u.banned ? 'Entbannen' : 'Bannen', async function () {
+        var d = await api('/api/admin/ban', { userId: u.id, banned: !u.banned }); S.users[d.user.id] = d.user; renderAll(); toast(d.user.banned ? u.name + ' wurde gebannt' : u.name + ' wurde entbannt'); }, reopen);
+    } }, u.banned ? 'Entbannen' : '⛔ Bannen'));
+  if (isMod()) b.push(el('button', { class: 'btn' + sm, onclick: function () { openUserLog(u, reopen); } }, '📜 Einträge'));
+  if (me.role === 'owner' && u.role !== 'owner') {
+    var toAdmin = u.role !== 'admin';
+    b.push(el('button', { class: 'btn' + sm, onclick: async function () {
+      try { var d = await api('/api/admin/role', { userId: u.id, role: toAdmin ? 'admin' : 'user' }); S.users[d.user.id] = d.user; renderAll(); toast(toAdmin ? u.name + ' ist jetzt Admin 🛡️' : u.name + ' ist kein Admin mehr'); if (reopen) reopen(); }
+      catch (e) { toast(e.message, true); }
+    } }, toAdmin ? '🛡️ Admin machen' : 'Admin entfernen'));
+    b.push(el('button', { class: 'btn' + sm, onclick: function () { openResetPw(u, reopen || closeModal); } }, '🔑 Passwort'));
+  }
+  return b;
+}
+function openProfile(uid) {
+  var u = S.users[uid]; if (!u) return;
+  var acts = userActions(u, function () { openProfile(uid); }, false);
+  modal(null, el('div', {},
+    el('div', { class: 'prof-banner', style: 'background:' + u.color }),
+    avatar(u, 80, null, true, 'prof-av'),
+    el('div', { class: 'prof-name' }, u.name, roleBadge(u), u.banned ? el('span', { class: 'badge-role ban' }, 'gebannt') : null, isFriend(u.id) ? el('span', { class: 'frbadge' }, '👥 Freund') : null),
+    el('p', { class: 'muted small' }, (u.online ? '🟢 Online' : '⚫ Offline') + '  •  Dabei seit ' + fmtDate(u.created)),
+    u.about ? el('div', { class: 'prof-about' }, el('h3', {}, 'Über mich'), el('p', {}, u.about)) : null,
+    acts.length ? el('div', { class: 'row', style: 'margin-top:16px' }, acts) : null,
+    el('div', { class: 'row end' }, el('button', { class: 'btn', onclick: closeModal }, 'Schließen'))));
+}
+function openResetPw(u, back) {
+  var i = el('input', { type: 'text', placeholder: 'Neues Passwort (mind. 6 Zeichen)', maxlength: 200 }), err = el('div', { class: 'err' });
+  modal('Passwort von ' + u.name + ' ändern', el('div', {}, el('p', {}, 'Sag der Person danach ihr neues Passwort. Sie wird sofort ausgeloggt.'), el('label', {}, 'Neues Passwort'), i, err,
+    el('div', { class: 'row end' }, el('button', { class: 'btn', onclick: back }, 'Zurück'),
+      el('button', { class: 'btn red', onclick: async function () {
+        try { await api('/api/admin/resetpw', { userId: u.id, password: i.value }); toast('Passwort geändert ✓'); back(); } catch (e) { err.textContent = e.message; } } }, 'Ändern'))));
+  i.focus();
+}
+function openAdmin() {
+  if (!isMod()) return;
+  var q = el('input', { placeholder: 'Benutzer suchen …' }), list = el('div', { class: 'ulist' });
+  var all = Object.values(S.users);
+  function stat(label, n) { return el('div', { class: 'stat' }, el('b', {}, n), el('span', { class: 'muted small' }, label)); }
+  function draw() {
+    list.textContent = ''; var f = q.value.toLowerCase();
+    Object.values(S.users).filter(function (u) { return u.name.toLowerCase().indexOf(f) >= 0; }).sort(cmpUser).forEach(function (u) {
+      list.append(el('div', { class: 'list-item' }, avatar(u, 36, function () { openProfile(u.id); }, true),
+        el('div', { style: 'flex:1;min-width:140px' },
+          el('div', { class: 'nm' }, u.name, roleBadge(u), u.banned ? el('span', { class: 'badge-role ban' }, 'gebannt') : null, u.id === S.me.id ? el('span', { class: 'muted small' }, '(du)') : null),
+          el('div', { class: 'muted small' }, (u.online ? 'Online' : 'Offline') + ' • dabei seit ' + fmtDate(u.created))),
+        el('div', { class: 'acts' }, userActions(u, openAdmin, true))));
+    });
+  }
+  q.oninput = draw; draw();
+  modal('🛡️ Admin-Bereich', el('div', {},
+    el('div', { class: 'row', style: 'margin:0 0 12px' }, el('button', { class: 'btn primary small' }, '👥 Benutzer'), el('button', { class: 'btn small', onclick: openModLog }, '📜 Protokoll (Blockiert & Gemeldet)')),
+    el('div', { class: 'stats' }, stat('Benutzer', all.length), stat('Online', all.filter(function (u) { return u.online; }).length), stat('Gebannt', all.filter(function (u) { return u.banned; }).length)),
+    S.me.role === 'owner' ? el('p', { class: 'small', style: 'margin-bottom:10px' }, 'Als Owner kannst du Leute zu Admins machen, bannen und Passwörter zurücksetzen. Admins können normale Benutzer bannen und alle Nachrichten löschen.') :
+      el('p', { class: 'small', style: 'margin-bottom:10px' }, 'Als Admin kannst du normale Benutzer bannen und Nachrichten löschen.'),
+    q, list, wordFilterBox()), { cls: 'wide' });
+}
+function wordFilterBox() {
+  var box = el('div', {});
+  var inp3 = el('input', { placeholder: 'Wort hinzufügen …', maxlength: 40 }), err = el('div', { class: 'err' });
+  async function call(name, mode) {
+    try { var d = await api('/api/admin/words', { name: name, role: mode }); S.badWords = d.badWords; box.replaceWith(wordFilterBox()); }
+    catch (e) { err.textContent = e.message; }
+  }
+  inp3.onkeydown = function (e) { if (e.key === 'Enter' && inp3.value.trim()) call(inp3.value.trim(), 'add'); };
+  box.append(el('hr'), el('h3', {}, '🚫 Wortfilter'),
+    el('p', { class: 'small' }, 'Rassistische Wörter und schlimme Beleidigungen sind schon eingebaut und werden immer geblockt (auch mit Tricks wie N3g… oder Leerzeichen). Wer 3x in 10 Min. beleidigt, ist 5 Min. stumm. Hier kannst du eigene Wörter dazu tun:'),
+    el('div', { class: 'row' }, inp3, el('button', { class: 'btn red', onclick: function () { if (inp3.value.trim()) call(inp3.value.trim(), 'add'); } }, 'Verbieten')), err,
+    el('div', { class: 'chips' }, S.badWords.length ? S.badWords.map(function (w) {
+      return el('span', { class: 'chip' }, w, el('button', { title: 'Wieder erlauben', onclick: function () { call(w, 'remove'); } }, '✕'));
+    }) : el('span', { class: 'small muted' }, 'Noch keine eigenen Wörter.')));
+  return box;
+}
+function openSettings() {
+  var color = S.me.color;
+  var sw = el('div', { class: 'swatches' });
+  var preview = avatar(S.me, 56);
+  var colorMsg = el('div', { class: 'fmsg' });
+  var saveTimer = null;
+  function saveColor() {
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(async function () {
+      try { var d = await api('/api/profile', { color: color }); d.user.online = true; S.users[d.user.id] = d.user; S.me = d.user; renderSide(); renderMembers(); renderMessages(); colorMsg.className = 'fmsg ok'; colorMsg.textContent = '✓ Farbe gespeichert'; }
+      catch (e) { colorMsg.className = 'fmsg bad'; colorMsg.textContent = e.message; }
+    }, 250);
+  }
+  function pick(c) { color = c; picker.value = c; preview.style.background = c; drawSw(); saveColor(); }
+  var picker = el('input', { type: 'color', class: 'colorpick', title: 'Eigene Farbe', value: color });
+  picker.oninput = function () { pick(picker.value); };
+  function drawSw() {
+    sw.textContent = '';
+    S.colors.forEach(function (c) { sw.append(el('button', { class: 'sw' + (c === color ? ' sel' : ''), style: 'background:' + c, title: c, onclick: function () { pick(c); } })); });
+    sw.append(picker);
+  }
+  drawSw();
+  var about = el('textarea', { rows: 3, maxlength: 190, placeholder: 'Erzähl was über dich …' }); about.value = S.me.about || '';
+  var err1 = el('div', { class: 'err' }), err2 = el('div', { class: 'err' });
+  var old = el('input', { type: 'password', autocomplete: 'current-password' }), nw = el('input', { type: 'password', autocomplete: 'new-password' }), nw2 = el('input', { type: 'password', autocomplete: 'new-password' });
+  modal('Einstellungen', el('div', {},
+    el('div', { class: 'row', style: 'margin-top:0' }, preview, el('div', {}, el('div', { class: 'prof-name', style: 'margin:0' }, S.me.name, roleBadge(S.me)), el('div', { class: 'muted small' }, 'Dabei seit ' + fmtDate(S.me.created)))),
+    el('h3', {}, '🎨 Profilfarbe'), el('p', { class: 'small muted', style: 'margin-bottom:8px' }, 'Klick auf eine Farbe – sie wird sofort gespeichert.'), sw, colorMsg,
+    el('label', {}, 'Über mich'), about,
+    el('div', { class: 'row' }, el('button', { class: 'btn primary', onclick: async function () {
+      try { var d = await api('/api/profile', { color: color, about: about.value }); d.user.online = true; S.users[d.user.id] = d.user; S.me = d.user; renderSide(); renderMembers(); err1.className = 'fmsg ok'; err1.textContent = '✓ „Über mich“ gespeichert – andere sehen es, wenn sie auf deinen Namen klicken.'; }
+      catch (e) { err1.className = 'fmsg bad'; err1.textContent = e.message; } } }, 'Über mich speichern')), err1,
+    el('hr'), el('h3', {}, '🔑 Passwort ändern'),
+    el('label', {}, 'Altes Passwort'), old, el('label', {}, 'Neues Passwort'), nw, el('label', {}, 'Neues Passwort wiederholen'), nw2,
+    el('div', { class: 'row' }, el('button', { class: 'btn primary', onclick: async function () {
+      if (nw.value !== nw2.value) { err2.textContent = 'Die neuen Passwörter stimmen nicht überein'; return; }
+      try { await api('/api/password', { old: old.value, password: nw.value }); toast('Passwort geändert ✓'); old.value = nw.value = nw2.value = ''; err2.textContent = ''; }
+      catch (e) { err2.textContent = e.message; } } }, 'Passwort ändern')), err2,
+    el('hr'), el('h3', {}, '❄️ Winter'),
+    el('label', { class: 'toggle' }, el('input', { type: 'checkbox', checked: snow.on, onchange: function (e) { snow.on = e.target.checked; try { localStorage.setItem('fb_snow', snow.on ? '1' : '0'); } catch (x) {} } }), 'Schneefall anzeigen'),
+    el('hr'), el('button', { class: 'btn red', onclick: logout }, '🚪 Ausloggen'),
+    S.me.role === 'owner' ? el('div', {}, el('hr'), el('h3', {}, '⏻ Frostbyte-Server'),
+      el('p', { class: 'small' }, 'Frostbyte läuft unsichtbar im Hintergrund weiter, auch wenn du dieses Fenster schließt – damit deine Freunde weiter chatten können. Hier kannst du es ganz ausmachen. Zum Starten einfach wieder Frostbyte.exe öffnen.'),
+      el('button', { class: 'btn red', style: 'margin-top:8px', onclick: function () {
+        confirmBox('Frostbyte ganz beenden? Dann kann niemand mehr chatten, bis du es wieder startest.', 'Beenden', async function () {
+          await api('/api/admin/shutdown', {});
+          if (S.es) { S.es.close(); S.es = null; }
+          setTimeout(function () { document.body.innerHTML = '<div style="height:100vh;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;color:#dfeaf8;font-family:sans-serif;background:#0b1322"><img src="data:," style="display:none"><div style="font-size:48px">❄️</div><div style="font-size:20px;font-weight:700">Frostbyte wurde beendet</div><div style="color:#8aa0bf">Du kannst dieses Fenster jetzt schließen.</div></div>'; }, 300);
+        });
+      } }, '⏻ Frostbyte beenden')) : null));
+}
+
+// ---------- Start ----------
+$('authSwitch').onclick = function (e) { e.preventDefault(); setAuthMode(authMode === 'login' ? 'register' : 'login'); $('aName').focus(); };
+$('authForm').onsubmit = async function (e) {
+  e.preventDefault();
+  var name = $('aName').value.trim(), pw = $('aPass').value;
+  if (authMode === 'register' && pw !== $('aPass2').value) { $('authErr').textContent = 'Die Passwörter stimmen nicht überein'; return; }
+  $('authBtn').disabled = true;
+  try {
+    var d = await api(authMode === 'login' ? '/api/login' : '/api/register', { name: name, password: pw });
+    S.token = d.token; try { localStorage.setItem('mc_token', d.token); } catch (x) {}
+    $('aPass').value = ''; $('aPass2').value = '';
+    await start();
+  } catch (err) { $('authErr').textContent = err.message; }
+  $('authBtn').disabled = false;
+};
+var inp = $('input');
+inp.addEventListener('keydown', function (e) {
+  if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); sendMsg(); }
+  else if (e.key === 'ArrowUp' && !inp.value) {
+    var list = S.msgs[S.view.channel] || [];
+    for (var i = list.length - 1; i >= 0; i--) if (list[i].userId === S.me.id && list[i].text) { e.preventDefault(); startEdit(list[i]); break; }
+  }
+});
+inp.addEventListener('input', function () {
+  autoGrow();
+  var t = Date.now();
+  if (inp.value && S.view.channel && t - S.lastTyping > 3000) { S.lastTyping = t; api('/api/typing', { channel: S.view.channel }).catch(function () {}); }
+});
+inp.addEventListener('paste', function (e) {
+  var f = e.clipboardData && e.clipboardData.files;
+  if (f && f.length && f[0].type.indexOf('image/') === 0) { e.preventDefault(); setImage(f[0]); }
+});
+$('btnSend').onclick = sendMsg;
+$('btnImg').onclick = function () { $('fileIn').click(); };
+$('fileIn').onchange = function (e) { setImage(e.target.files[0]); e.target.value = ''; };
+$('btnEmoji').onclick = function (e) { e.stopPropagation(); emojiPicker(e.currentTarget, function (x) { insertAtCursor(inp, x); }); };
+$('backdrop').onclick = function () { $('app').classList.remove('nav-open', 'mem-open'); };
+$('msgs').addEventListener('scroll', function () { var b = $('msgs'); S.stick = b.scrollHeight - b.scrollTop - b.clientHeight < 60; });
+$('main').addEventListener('dragover', function (e) { e.preventDefault(); });
+$('main').addEventListener('drop', function (e) { e.preventDefault(); if (e.dataTransfer.files.length && S.view.channel) setImage(e.dataTransfer.files[0]); });
+document.addEventListener('keydown', function (e) {
+  if (e.key !== 'Escape') return;
+  closePicker();
+  if (!$('modal').classList.contains('hidden')) closeModal();
+  else if (S.editing) { S.editing = null; renderMessages(); }
+});
+document.addEventListener('visibilitychange', function () {
+  if (!document.hidden) { S.hiddenCount = 0; if (S.view.channel) S.unread[S.view.channel] = 0; updateTitle(); renderRail(); renderSide(); }
+});
+setInterval(renderTyping, 1000);
+snowStart();
+if (S.token) start(); else showAuth();
+})();
+</script>
+</body>
+</html>

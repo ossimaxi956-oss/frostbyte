@@ -1,0 +1,27 @@
+name: Frostbyte bauen und veroeffentlichen
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.24"
+      - name: Test
+        run: go test ./...
+      - name: Windows-App bauen
+        run: GOOS=windows GOARCH=amd64 go build -trimpath -ldflags "-H windowsgui -s -w" -o Frostbyte.exe .
+      - name: Release veroeffentlichen
+        uses: softprops/action-gh-release@v2
+        with:
+          files: Frostbyte.exe
+          name: Frostbyte ${{ github.ref_name }}
+          body_path: CHANGES.md
