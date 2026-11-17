@@ -499,7 +499,8 @@ body:before{content:"";position:fixed;inset:-20%;z-index:-1;pointer-events:none;
 .bc-foot{display:flex;justify-content:space-between;align-items:center;margin-top:12px;padding-top:10px;border-top:1px solid rgba(255,255,255,.06)}
 .oktxt{color:#2ee59d;font-weight:700}
 .sect{padding:0;overflow:hidden}
-.sect-h{display:flex;align-items:center;gap:12px;padding:14px 16px}
+.sect-h{display:flex!important;align-items:center;gap:12px;padding:14px 16px!important;margin:0!important;cursor:pointer;text-transform:none!important;letter-spacing:0!important;font-size:inherit!important;color:inherit!important}
+.sect-h:hover{background:rgba(255,255,255,.03)}
 .sect-h b{display:block;color:#fff}.sect-h small{display:block;color:#8e9bc2;font-size:12px}
 .sect-ic{width:40px;height:40px;border-radius:12px;background:rgba(255,255,255,.06);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
 .sect.on{border-color:rgba(46,229,157,.35)}
@@ -806,7 +807,7 @@ function handle(type, d) {
       break;
     case 'call': onCall(d.from, d.data); break;
     case 'giveaway':
-      S.gws[d.id] = d;
+      S.gws[d.id] = d; renderMembers();
       if (S.view.channel === d.channel) renderMessages();
       break;
     case 'voice_state':
@@ -1087,9 +1088,10 @@ function renderMsg(m, grouped) {
   }
   if (grouped) row.append(el('span', { class: 'gtime' }, hhmm(m.ts)));
   else {
-    row.append(avatar(u, 40, function () { openProfile(u.id); }));
+    var openU = function () { if (u.bot) openBotProfile(u, curServer() || {}); else openProfile(u.id); };
+    row.append(avatar(u, 40, openU));
     row.append(el('div', { class: 'mhead' },
-      el('span', { class: 'mname', style: 'color:' + nameColor(curServer(), u), onclick: function () { openProfile(u.id); } }, u.name), roleBadge(u),
+      el('span', { class: 'mname', style: 'color:' + nameColor(curServer(), u), onclick: openU }, u.name), roleBadge(u),
       el('span', { class: 'mtime', title: new Date(m.ts).toLocaleString('de-DE') }, fmtTime(m.ts))));
   }
   if (S.editing === m.id) {
@@ -1182,7 +1184,52 @@ function renderMembers() {
   });
   on = on.filter(function (u) { return !placed[u.id]; });
   if (on.length) { box.append(el('div', { class: 'cat' }, 'Online — ' + on.length)); on.forEach(function (u) { box.append(memRow(u, s)); }); }
+  var bots = activeBots(s);
+  if (bots.length) { box.append(el('div', { class: 'cat' }, 'Bots — ' + bots.length)); bots.forEach(function (bu) { box.append(botRow(bu, s)); }); }
   if (off.length) { box.append(el('div', { class: 'cat' }, 'Offline — ' + off.length)); off.forEach(function (u) { box.append(memRow(u, s, true)); }); }
+}
+function activeBots(s) {
+  var b = (s && s.bots) || {}, out = [];
+  if (b.giveaway) out.push(BOTS['bot:giveaway']);
+  if (b.galaxy) out.push(BOTS['bot:galaxy']);
+  return out;
+}
+var BOT_INFO = {
+  'bot:giveaway': { page: 'giveaway', text: 'Startet Gewinnspiele mit Countdown und lost die Gewinner automatisch aus.', how: ['🎉 oben im Chat', 'Rechtsklick auf einen Kanal → „Giveaway hier starten“', '/giveaway in den Chat schreiben'] },
+  'bot:galaxy': { page: 'galaxy', text: 'Begrüßt neue Leute, verteilt XP und Level, passt auf (Auto-Mod) und hat lustige Befehle.', how: ['/hilfe – alle Befehle', '/rank – dein Level', '/top – Rangliste', '/münze, /würfel, /8ball, /server'] }
+};
+function botStatus(bu, s) {
+  var b = s.bots || {};
+  if (bu.id === 'bot:giveaway') { var n = Object.values(S.gws || {}).filter(function (g) { return g.serverId === s.id && !g.ended; }).length; return n ? '🎉 ' + n + ' Giveaway' + (n > 1 ? 's' : '') + ' läuft' + (n > 1 ? 'en' : '') : 'Bereit für Giveaways'; }
+  var parts = []; if (b.welcomeOn) parts.push('👋'); if (b.levelsOn) parts.push('⭐'); if (b.antiLink || b.antiCaps || b.antiSpam) parts.push('🛡️');
+  return parts.length ? 'Aktiv: ' + parts.join(' ') : '/hilfe für Befehle';
+}
+function botRow(bu, s) {
+  var open = function () { openBotProfile(bu, s); };
+  var row = el('div', { class: 'mem', onclick: open, oncontextmenu: function (e) { ctxMenu(e, [
+      { label: 'Bot-Profil', icon: '🤖', fn: open },
+      perm(s, 'manageServer') ? { label: 'Bot einstellen', icon: '⚙️', fn: function () { openServerSettings(s, BOT_INFO[bu.id].page); } } : null,
+      bu.id === 'bot:giveaway' && perm(s, 'giveaway') ? { label: 'Giveaway starten', icon: '🎉', fn: function () { openGiveaway(s, S.view.channel); } } : null
+    ]); } },
+    el('div', { class: 'av', style: 'width:32px;height:32px;background:linear-gradient(135deg,#2ee6f5,#6d5dfc,#e14bd6);font-size:16px' }, bu.icon, el('span', { class: 'dot on' })),
+    el('div', { class: 'nm', style: 'display:flex;flex-direction:column;min-width:0' },
+      el('span', { style: 'display:flex;gap:6px;align-items:center;color:' + bu.color }, bu.name, roleBadge(bu)),
+      el('span', { class: 'muted', style: 'font-size:11px;overflow:hidden;text-overflow:ellipsis' }, botStatus(bu, s))));
+  return row;
+}
+function openBotProfile(bu, s) {
+  var inf = BOT_INFO[bu.id];
+  modal(null, el('div', {},
+    el('div', { class: 'prof-banner', style: 'background:linear-gradient(135deg,#2ee6f5,#6d5dfc,#e14bd6)' }),
+    el('div', { class: 'av prof-av', style: 'width:80px;height:80px;font-size:40px;background:linear-gradient(135deg,#2ee6f5,#6d5dfc,#e14bd6)' }, bu.icon),
+    el('div', { class: 'prof-name' }, bu.name, roleBadge(bu)),
+    el('p', { class: 'muted small' }, '🟢 Online · eingebauter Frostbyte-Bot · ' + botStatus(bu, s)),
+    el('div', { class: 'prof-about' }, el('h3', {}, 'Was ich kann'), el('p', {}, inf.text)),
+    el('div', { class: 'prof-about' }, el('h3', {}, 'So benutzt du mich'), el('div', { class: 'cmds' }, inf.how.map(function (h) { return el('div', {}, '• ' + h); }))),
+    el('div', { class: 'row', style: 'margin-top:14px' },
+      perm(s, 'manageServer') ? el('button', { class: 'btn primary', onclick: function () { closeModal(); openServerSettings(s, inf.page); } }, '⚙️ Einstellungen') : null,
+      bu.id === 'bot:giveaway' && perm(s, 'giveaway') ? el('button', { class: 'btn green', onclick: function () { closeModal(); openGiveaway(s, S.view.channel); } }, '🎉 Giveaway starten') : null),
+    el('div', { class: 'row end' }, el('button', { class: 'btn', onclick: closeModal }, 'Schließen'))));
 }
 
 // ---------- Protokoll / Einträge ----------
@@ -1760,9 +1807,11 @@ var SS_PAGES = {
   galaxy: function (c, s) {
     var b = s.bots || {};
     var sect = function (icon, title, desc, key, inner) {
+      var cb = el('input', { type: 'checkbox' }); cb.checked = !!b[key];
+      cb.onchange = function () { var p = {}; p[key] = cb.checked; saveBots(s, p, true); };
       return el('div', { class: 'ss-card sect' + (b[key] ? ' on' : '') },
-        el('div', { class: 'sect-h' }, el('span', { class: 'sect-ic' }, icon), el('div', { style: 'flex:1' }, el('b', {}, title), el('small', {}, desc)),
-          el('span', { class: 'switch' }, (function () { var cb = el('input', { type: 'checkbox' }); cb.checked = !!b[key]; cb.onchange = function () { var p = {}; p[key] = cb.checked; saveBots(s, p, true); }; return cb; })(), el('i'))),
+        el('label', { class: 'sect-h' }, el('span', { class: 'sect-ic' }, icon), el('div', { style: 'flex:1' }, el('b', {}, title), el('small', {}, desc)),
+          el('span', { class: 'switch' }, cb, el('i'))),
         b[key] && inner ? el('div', { class: 'sect-b' }, inner()) : null);
     };
     var textBox = function (key, ph) {

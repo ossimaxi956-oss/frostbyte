@@ -40,7 +40,7 @@ const (
 	OwnerName     = "Owner"
 	OwnerPassword = "Owner#2026" // nur beim allerersten Start benutzt
 	DefaultPort   = "3000"
-	Version       = "16"
+	Version       = "17"
 )
 
 //go:embed index.html
