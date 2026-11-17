@@ -40,7 +40,7 @@ const (
 	OwnerName     = "Owner"
 	OwnerPassword = "Owner#2026" // nur beim allerersten Start benutzt
 	DefaultPort   = "3000"
-	Version       = "14"
+	Version       = "15"
 )
 
 //go:embed index.html
@@ -81,6 +81,7 @@ type User struct {
 	About     string `json:"about"`
 	Created   int64  `json:"created"`
 	Banned    bool   `json:"banned"`
+	Avatar    string `json:"avatar,omitempty"`
 }
 type Session struct {
 	UserID  string `json:"userId"`
@@ -92,13 +93,15 @@ type Channel struct {
 	Type string `json:"type,omitempty"` // "" = Text, "voice" = Sprache
 }
 type Server struct {
-	ID       string    `json:"id"`
-	Name     string    `json:"name"`
-	OwnerID  string    `json:"ownerId"`
-	Invite   string    `json:"invite"`
-	Members  []string  `json:"members"`
-	Channels []Channel `json:"channels"`
-	Created  int64     `json:"created"`
+	ID       string         `json:"id"`
+	Name     string         `json:"name"`
+	OwnerID  string         `json:"ownerId"`
+	Invite   string         `json:"invite"`
+	Members  []string       `json:"members"`
+	Channels []Channel      `json:"channels"`
+	Created  int64          `json:"created"`
+	Bots     *BotCfg        `json:"bots,omitempty"`
+	XP       map[string]int `json:"xp,omitempty"`
 }
 type Message struct {
 	ID        string              `json:"id"`
@@ -109,6 +112,7 @@ type Message struct {
 	Ts        int64               `json:"ts"`
 	Edited    *int64              `json:"edited"`
 	Reactions map[string][]string `json:"reactions"`
+	Giveaway  string              `json:"giveaway,omitempty"`
 }
 type DM struct {
 	ID    string   `json:"id"`
@@ -139,6 +143,7 @@ type DB struct {
 	Requests   []*FriendReq          `json:"requests"`
 	BadWords   []string              `json:"badWords"`
 	ModLog     []*ModEntry           `json:"modLog"`
+	Giveaways  map[string]*Giveaway  `json:"giveaways"`
 }
 
 func modLog(e *ModEntry) {
@@ -392,6 +397,7 @@ type PubUser struct {
 	Banned  bool   `json:"banned"`
 	Created int64  `json:"created"`
 	Online  bool   `json:"online"`
+	Avatar  string `json:"avatar,omitempty"`
 }
 type PubServer struct {
 	ID       string    `json:"id"`
@@ -401,13 +407,14 @@ type PubServer struct {
 	Members  []string  `json:"members"`
 	Channels []Channel `json:"channels"`
 	Main     bool      `json:"main"`
+	Bots     *BotCfg   `json:"bots"`
 }
 
 func pubUser(u *User) PubUser {
-	return PubUser{u.ID, u.Name, u.Color, u.Role, u.About, u.Banned, u.Created, isOnline(u.ID)}
+	return PubUser{u.ID, u.Name, u.Color, u.Role, u.About, u.Banned, u.Created, isOnline(u.ID), u.Avatar}
 }
 func pubServer(s *Server) PubServer {
-	return PubServer{s.ID, s.Name, s.OwnerID, s.Invite, s.Members, s.Channels, s.ID == db.MainServer}
+	return PubServer{s.ID, s.Name, s.OwnerID, s.Invite, s.Members, s.Channels, s.ID == db.MainServer, botsOf(s)}
 }
 
 type ChCtx struct {
@@ -465,6 +472,9 @@ type Body struct {
 	About     *string         `json:"about"`
 	Banned    bool            `json:"banned"`
 	Data      json.RawMessage `json:"data"`
+	Cfg       json.RawMessage `json:"cfg"`
+	Minutes   int             `json:"minutes"`
+	Count     int             `json:"count"`
 }
 
 func sortedPair(a, b string) []string {
@@ -651,6 +661,7 @@ func friendsChanged(a, b string) {
 }
 
 func setupRoutes() {
+	setupBotRoutes()
 	routes["GET /api/info"] = Route{func(c *Ctx) (any, error) { return M{"app": AppName, "version": Version}, nil }, false, 0}
 	R("POST /api/friends/request", func(c *Ctx) (any, error) {
 		var t *User
@@ -809,7 +820,7 @@ func setupRoutes() {
 			}
 		}
 		return M{"app": AppName, "version": Version, "me": pubUser(c.user), "mainServer": db.MainServer, "emojis": EMOJIS, "colors": COLORS,
-			"users": users, "servers": servers, "dms": dms, "friends": friendState(c.user.ID), "voice": voice, "publicUrl": publicURL, "lan": func() []string {
+			"users": users, "servers": servers, "dms": dms, "friends": friendState(c.user.ID), "voice": voice, "giveaways": gwsFor(c.user.ID), "publicUrl": publicURL, "lan": func() []string {
 				if c.user.Role != "owner" {
 					return []string{}
 				}
@@ -864,6 +875,14 @@ func setupRoutes() {
 		if err := checkTextAt(c.user, text, "Nachricht", ch); err != nil {
 			return nil, err
 		}
+		if !cc.isDM && c.b.Image == "" && botCommand(cc.server, ch, c.user, text) {
+			return M{"command": true}, nil
+		}
+		if !cc.isDM {
+			if err := botAutomod(cc.server, c.user, text); err != nil {
+				return nil, err
+			}
+		}
 		var img *string
 		if c.b.Image != "" {
 			p, err := saveImage(c.b.Image)
@@ -886,6 +905,9 @@ func setupRoutes() {
 		}
 		save()
 		send(cc.audience, "message", ev)
+		if !cc.isDM {
+			botLevels(cc.server, ch, c.user)
+		}
 		return nil, nil
 	}, true, 8 * 1024 * 1024}
 
@@ -994,6 +1016,9 @@ func setupRoutes() {
 			if s.Invite == code {
 				if !contains(s.Members, c.user.ID) {
 					s.Members = append(s.Members, c.user.ID)
+					out, _ := serverChanged(s)
+					botWelcome(s, c.user)
+					return out, nil
 				}
 				return serverChanged(s)
 			}
@@ -1023,6 +1048,7 @@ func setupRoutes() {
 		s.Members = append(s.Members, t.ID)
 		send([]string{t.ID}, "server_added", M{"name": s.Name, "by": c.user.Name})
 		out, _ := serverChanged(s)
+		botWelcome(s, t)
 		out.(M)["added"] = t.Name
 		return out, nil
 	})
@@ -1055,6 +1081,7 @@ func setupRoutes() {
 		s.Members = without(s.Members, c.user.ID)
 		vcKick(c.user.ID, s.ID)
 		serverChanged(s)
+		botLeave(s, c.user)
 		send([]string{c.user.ID}, "server_removed", M{"serverId": s.ID})
 		return nil, nil
 	})
@@ -1096,6 +1123,7 @@ func setupRoutes() {
 		s.Members = without(s.Members, t.ID)
 		vcKick(t.ID, s.ID)
 		out, _ := serverChanged(s)
+		botLeave(s, t)
 		send([]string{t.ID}, "server_removed", M{"serverId": s.ID})
 		return out, nil
 	})
@@ -1204,6 +1232,20 @@ func setupRoutes() {
 				return nil, err
 			}
 			c.user.About = trunc(*c.b.About, 190)
+		}
+		save()
+		sendAll("user_update", pubUser(c.user))
+		return M{"user": pubUser(c.user)}, nil
+	})
+	R("POST /api/profile/avatar", func(c *Ctx) (any, error) {
+		if c.b.Image == "" {
+			c.user.Avatar = ""
+		} else {
+			p, err := saveImage(c.b.Image)
+			if err != nil {
+				return nil, err
+			}
+			c.user.Avatar = p
 		}
 		save()
 		sendAll("user_update", pubUser(c.user))
@@ -1815,6 +1857,14 @@ func main() {
 	if db.Requests == nil {
 		db.Requests = []*FriendReq{}
 	}
+	if db.Giveaways == nil {
+		db.Giveaways = map[string]*Giveaway{}
+	}
+	for id, g := range db.Giveaways { // alte, beendete Giveaways nach 30 Tagen wegraeumen
+		if g.Ended && now()-g.EndsAt > 30*24*3600*1000 {
+			delete(db.Giveaways, id)
+		}
+	}
 
 	// Owner + Hauptserver
 	createdOwner := false
@@ -1877,6 +1927,7 @@ func main() {
 		go func() { time.Sleep(300 * time.Millisecond); openApp(local) }()
 	}
 	go updateLoop(srv)
+	go giveawayLoop()
 	go startTunnel(port)
 	if err := srv.Serve(ln); err != nil {
 		msgBox(AppName, "Fehler: "+err.Error())

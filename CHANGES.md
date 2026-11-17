@@ -1,6 +1,6 @@
-🔊 Sprachkanäle & Rechtsklick-Menü!
-- Sprachkanäle auf Servern: reinklicken und mit allen reden, die drin sind
-- Man sieht unter dem Kanal, wer drin ist – und wer gerade spricht (grüner Rand)
-- Rechtsklick wie bei Discord: Kanäle bearbeiten/löschen/erstellen, Server, Leute und Nachrichten
-- Am Handy: lange drücken statt Rechtsklick
-- Neues Logo wird jetzt überall richtig angezeigt
+🤖 Bots & Profilbilder!
+- 🎉 Giveaway-Bot: Gewinnspiele mit Countdown, Teilnehmen-Knopf, automatischer Auslosung und Neu-Auslosen
+- 🌌 Galaxy-Bot: Willkommens- & Abschieds-Nachrichten, Level-System mit Rangliste, Auto-Mod (Links, CAPS, Spam)
+- Befehle: /hilfe /rank /top /münze /würfel /8ball /server /giveaway
+- Bots für jeden Server einzeln einstellen: 🤖 oben im Chat oder Rechtsklick auf den Server
+- 🖼️ Eigenes Profilbild: Einstellungen → Bild auswählen

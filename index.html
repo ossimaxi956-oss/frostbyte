@@ -282,6 +282,43 @@ input,textarea{font:inherit;color:var(--text)}
 .tp .tpi{font-size:22px;width:28px;text-align:center}
 .tp b{display:block;color:#fff}.tp small{color:var(--muted)}
 .tp .tpr{margin-left:auto;color:#a99cff;font-size:18px}
+.badge-role.bot{background:linear-gradient(135deg,#2ee6f5,#6d5dfc);color:#fff}
+.gw{margin-top:6px;max-width:460px;border-radius:16px;padding:16px 18px;background:linear-gradient(145deg,rgba(225,75,214,.22),rgba(109,93,252,.18) 50%,rgba(46,230,245,.12));border:1px solid rgba(225,75,214,.45);box-shadow:0 10px 30px rgba(225,75,214,.15)}
+.gw.ended{filter:saturate(.6);border-color:rgba(255,255,255,.15)}
+.gw.won{filter:none;border-color:#ffc857;box-shadow:0 0 0 3px rgba(255,200,87,.25),0 10px 30px rgba(255,200,87,.25)}
+.gw-top{display:flex;justify-content:space-between;align-items:center}
+.gw-tag{font-weight:900;letter-spacing:.12em;font-size:12px;background:linear-gradient(135deg,#ff9ff3,#ffc857);-webkit-background-clip:text;background-clip:text;color:transparent}
+.gw-state{font-size:12px;font-weight:700;color:var(--muted)}.gw-state.live{color:#2ee59d}
+.gw-prize{font-size:22px;font-weight:900;color:#fff;margin:6px 0 10px;overflow-wrap:anywhere}
+.gw-info{display:flex;flex-direction:column;gap:4px;font-size:14px;color:#dfe5ff}
+.gw-win{margin-top:10px;font-weight:900;color:#ffc857;font-size:16px}
+.gw-btns{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+.sel{width:100%;background:rgba(0,0,0,.35);color:var(--text);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:10px;font:inherit}
+.sel option{background:#0d1426}
+.botcard{border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:14px;margin-bottom:12px;background:rgba(255,255,255,.03)}
+.botcard.on{border-color:rgba(124,108,255,.5);background:linear-gradient(145deg,rgba(124,108,255,.12),rgba(46,230,245,.05))}
+.bc-head{display:flex;align-items:center;gap:12px}
+.bc-av{width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:24px;background:linear-gradient(135deg,#2ee6f5,#6d5dfc,#e14bd6);flex-shrink:0}
+.bc-t{flex:1;min-width:0}.bc-t b{display:block;color:#fff;font-size:16px}.bc-t small{color:var(--muted)}
+.bc-head .trow{margin:0;padding:0;background:none}
+.bc-body{margin-top:12px;padding-top:4px;border-top:1px solid rgba(255,255,255,.06)}
+.bc-body h4{color:#fff;margin:16px 0 6px;font-size:14px}
+.trow{display:flex!important;align-items:center;justify-content:space-between;gap:12px;padding:8px 0!important;margin:0!important;cursor:pointer;text-transform:none!important;letter-spacing:0!important}
+.trow b{display:block;color:#e7ecff;font-size:14px}.trow small{display:block;color:var(--muted);font-size:12px;font-weight:400}
+.switch{position:relative;width:44px;height:24px;flex-shrink:0}
+.switch input{position:absolute;opacity:0;width:0;height:0}
+.switch i{position:absolute;inset:0;border-radius:12px;background:rgba(255,255,255,.15);transition:background .2s}
+.switch i:after{content:"";position:absolute;left:3px;top:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:transform .2s}
+.switch input:checked+i{background:linear-gradient(135deg,#2ee59d,#14b8a6)}
+.switch input:checked+i:after{transform:translateX(20px)}
+.cmds{display:flex;flex-direction:column;gap:4px;font-size:14px;color:#cfd6f5}
+.cmds code{background:rgba(0,0,0,.35);padding:1px 6px;border-radius:5px;color:#a99cff}
+.slash{background:rgba(12,16,32,.97);border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:6px;margin-bottom:6px;box-shadow:0 10px 30px rgba(0,0,0,.5)}
+.sl-h{font-size:11px;font-weight:800;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;padding:4px 8px}
+.sl-it{display:flex;align-items:center;gap:10px;padding:8px;border-radius:8px;cursor:pointer}
+.sl-it:hover{background:rgba(124,108,255,.25)}
+.sl-ic{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#2ee6f5,#6d5dfc,#e14bd6);font-size:14px}
+.sl-it b{color:#fff}
 .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
 .chip{background:#0d1626;border:1px solid #2a3a55;border-radius:14px;padding:3px 6px 3px 10px;font-size:13px;display:flex;align-items:center;gap:4px}
 .chip button{color:var(--muted);font-size:13px;padding:0 4px}.chip button:hover{color:#fa777c}
@@ -452,6 +489,7 @@ body:before{content:"";position:fixed;inset:-20%;z-index:-1;pointer-events:none;
     <div id="conn" class="conn hidden">Verbindung verloren – verbinde neu …</div>
     <div id="msgs"></div>
     <div id="composerWrap" class="composer-wrap">
+      <div id="slash" class="slash hidden"></div>
       <div id="preview" class="preview hidden"></div>
       <div class="composer">
         <button type="button" class="iconbtn" id="btnImg" title="Bild senden">🖼️</button>
@@ -553,11 +591,19 @@ function fmt(text) {
   return t.replace(/\n/g, '<br>');
 }
 function avatar(u, size, onclick, dot, cls) {
+  var pic = u.avatar && /^\/uploads\/[a-f0-9]{16}\.(png|jpg|gif|webp)$/.test(u.avatar);
+  var bg = u.bot ? 'linear-gradient(135deg,#2ee6f5,#6d5dfc,#e14bd6)' : pic ? 'url(' + u.avatar + ') center/cover no-repeat, ' + u.color : u.color;
   return el('div', { class: 'av' + (cls ? ' ' + cls : ''), title: u.name,
-    style: 'width:' + size + 'px;height:' + size + 'px;background:' + u.color + ';font-size:' + Math.round(size * 0.42) + 'px;' + (onclick ? 'cursor:pointer' : ''),
-    onclick: onclick || null }, (u.name || '?').charAt(0), dot ? el('span', { class: 'dot' + (u.online ? ' on' : '') }) : null);
+    style: 'width:' + size + 'px;height:' + size + 'px;background:' + bg + ';font-size:' + Math.round(size * (u.bot ? 0.5 : 0.42)) + 'px;' + (onclick ? 'cursor:pointer' : ''),
+    onclick: onclick || null }, u.bot ? u.icon : pic ? '' : (u.name || '?').charAt(0), dot ? el('span', { class: 'dot' + (u.online ? ' on' : '') }) : null);
 }
+var BOTS = {
+  'bot:giveaway': { id: 'bot:giveaway', name: 'Giveaway-Bot', color: '#e14bd6', role: 'bot', bot: true, icon: '🎉' },
+  'bot:galaxy': { id: 'bot:galaxy', name: 'Galaxy-Bot', color: '#8b7bff', role: 'bot', bot: true, icon: '🌌' }
+};
+function userOf(id) { return S.users[id] || BOTS[id] || { id: id, name: 'Unbekannt', color: '#6f84a3', role: 'user' }; }
 function roleBadge(u) {
+  if (u.role === 'bot') return el('span', { class: 'badge-role bot' }, '✓ Bot');
   if (u.role === 'owner') return el('span', { class: 'badge-role owner' }, 'Owner');
   if (u.role === 'admin') return el('span', { class: 'badge-role admin' }, 'Admin');
   return null;
@@ -596,6 +642,7 @@ async function loadState() {
   S.badWords = d.badWords || [];
   S.lan = d.lan || [];
   S.voiceSt = d.voice || {};
+  S.gws = {}; (d.giveaways || []).forEach(function (g) { S.gws[g.id] = g; });
   if (S.version && d.version && S.version !== d.version) { location.reload(); return; }
   S.version = d.version;
   S.users[S.me.id].online = true; S.me = S.users[S.me.id];
@@ -677,6 +724,10 @@ function handle(type, d) {
       else { renderRail(); renderSide(); renderHead(); renderMembers(); }
       break;
     case 'call': onCall(d.from, d.data); break;
+    case 'giveaway':
+      S.gws[d.id] = d;
+      if (S.view.channel === d.channel) renderMessages();
+      break;
     case 'voice_state':
       var before = (S.voiceSt[d.channel] || []).length;
       S.voiceSt[d.channel] = d.users;
@@ -898,6 +949,8 @@ function renderHead() {
     return;
   } else h.append(el('span', { class: 'title' }, 'Direktnachrichten'));
   h.append(el('div', { style: 'flex:1' }));
+  if (s && s.bots && s.bots.giveaway && canManage(s)) h.append(el('button', { class: 'iconbtn', title: 'Giveaway starten', onclick: function () { openGiveaway(s, S.view.channel); } }, '🎉'));
+  if (s && canManage(s)) h.append(el('button', { class: 'iconbtn', title: 'Bots einstellen', onclick: function () { openBots(s); } }, '🤖'));
   if (s) h.append(el('button', { class: 'iconbtn', title: 'Freunde einladen', onclick: openServerInfo }, '🔗'));
   h.append(el('button', { class: 'iconbtn', title: 'Mitglieder', onclick: toggleMembers }, '👥'));
 }
@@ -932,7 +985,7 @@ function renderMessages() {
   if (S.editing) { var ta = box.querySelector('.editbox textarea'); if (ta) { ta.focus(); ta.selectionStart = ta.selectionEnd = ta.value.length; } }
 }
 function renderMsg(m, grouped) {
-  var u = S.users[m.userId] || { id: m.userId, name: 'Unbekannt', color: '#6f84a3', role: 'user' };
+  var u = userOf(m.userId);
   var mine = m.userId === S.me.id;
   var row = el('div', { class: 'msg' + (grouped ? ' grouped' : '') + (mentionsMe(m.text) ? ' mentioned' : ''), oncontextmenu: function (e) { if (!e.target.closest('a,textarea')) messageMenu(e, m); } });
   row.addEventListener('click', function (e) {
@@ -956,6 +1009,8 @@ function renderMsg(m, grouped) {
       else if (e.key === 'Escape') { e.stopPropagation(); S.editing = null; renderMessages(); }
     };
     row.append(el('div', { class: 'editbox' }, ta, el('small', {}, 'Esc = abbrechen • Enter = speichern')));
+  } else if (m.giveaway && S.gws[m.giveaway]) {
+    row.append(gwCard(S.gws[m.giveaway]));
   } else if (m.text) {
     row.append(el('div', { class: 'mtext', html: fmt(m.text) },
       m.edited ? el('span', { class: 'edited', title: 'Bearbeitet: ' + new Date(m.edited).toLocaleString('de-DE') }, ' (bearbeitet)') : null));
@@ -977,7 +1032,7 @@ function renderMsg(m, grouped) {
     el('button', { title: 'Reagieren', onclick: function (e) { e.stopPropagation(); emojiPicker(e.currentTarget, function (x) { react(m, x); }); } }, '😀'),
     mine ? el('button', { title: 'Bearbeiten', onclick: function () { startEdit(m); } }, '✏️') : null,
     canDel ? el('button', { title: 'Löschen', onclick: function () { delMsg(m); } }, '🗑️') : null,
-    !mine ? el('button', { title: 'Melden', onclick: function () { reportMsg(m); } }, '🚩') : null));
+    !mine && m.userId.indexOf('bot:') !== 0 ? el('button', { title: 'Melden', onclick: function () { reportMsg(m); } }, '🚩') : null));
   return row;
 }
 function renderComposer() {
@@ -1100,6 +1155,7 @@ function channelMenu(e, s, c) {
     voice ? { label: V && V.ch === c.id ? 'Sprachkanal verlassen' : 'Beitreten', icon: V && V.ch === c.id ? '✖' : '🔊', fn: function () { if (V && V.ch === c.id) leaveVC(); else joinVC(c.id); } }
           : { label: 'Als gelesen markieren', icon: '✓', fn: function () { S.unread[c.id] = 0; renderSide(); renderRail(); } },
     voice ? { label: 'Ansehen', icon: '👀', fn: function () { openChannel(c.id); } } : null,
+    !voice && man && s.bots && s.bots.giveaway ? { label: 'Giveaway hier starten', icon: '🎉', fn: function () { openGiveaway(s, c.id); } } : null,
     man ? '-' : null,
     man ? { label: 'Kanal bearbeiten', icon: '✏️', fn: function () { openRenameChannel(s, c); } } : null,
     man ? { label: 'Textkanal erstellen', icon: '#', fn: function () { openCreateChannel(s, 'text'); } } : null,
@@ -1133,6 +1189,8 @@ function serverMenu(e, s) {
     { label: 'Leute hinzufügen', icon: '👋', fn: function () { selectServer(s.id); openServerInfo(); } },
     canManage(s) ? { label: 'Server-Einstellungen', icon: '⚙️', fn: function () { selectServer(s.id); openServerInfo(); } } : null,
     canManage(s) ? { label: 'Kanal erstellen', icon: '＋', fn: function () { selectServer(s.id); openCreateChannel(s, 'text'); } } : null,
+    canManage(s) ? { label: 'Bots einstellen', icon: '🤖', fn: function () { openBots(s); } } : null,
+    canManage(s) && s.bots && s.bots.giveaway ? { label: 'Giveaway starten', icon: '🎉', fn: function () { selectServer(s.id); openGiveaway(s, S.view.channel); } } : null,
     { label: 'Einladungscode kopieren', icon: '🔗', fn: function () { copyText(s.invite); } },
     '-',
     owner ? { label: 'Server löschen', icon: '🗑️', danger: true, fn: function () {
@@ -1169,9 +1227,142 @@ function messageMenu(e, m) {
     m.text ? { label: 'Text kopieren', icon: '📋', fn: function () { copyText(m.text); } } : null,
     !mine ? { label: 'Erwähnen', icon: '@', fn: function () { var u = S.users[m.userId]; if (u) insertAtCursor($('input'), '@' + u.name + ' '); } } : null,
     '-',
-    !mine ? { label: 'Nachricht melden', icon: '🚩', danger: true, fn: function () { reportMsg(m); } } : null,
+    !mine && m.userId.indexOf('bot:') !== 0 ? { label: 'Nachricht melden', icon: '🚩', danger: true, fn: function () { reportMsg(m); } } : null,
     canDel ? { label: 'Nachricht löschen', icon: '🗑️', danger: true, fn: function () { delMsg(m); } } : null
   ]);
+}
+
+// ---------- Bots: Giveaway & Galaxy ----------
+function fmtLeft(ms) {
+  if (ms <= 0) return 'gleich …';
+  var s = Math.floor(ms / 1000), d = Math.floor(s / 86400), h = Math.floor(s % 86400 / 3600), m = Math.floor(s % 3600 / 60), sec = s % 60;
+  if (d) return d + ' T ' + h + ' Std';
+  if (h) return h + ' Std ' + m + ' Min';
+  return m + ':' + pad(sec);
+}
+setInterval(function () { document.querySelectorAll('.gw-cd').forEach(function (e) { e.textContent = fmtLeft(+e.getAttribute('data-ends') - Date.now()); }); }, 1000);
+async function gwAct(action, g) {
+  try { var d = await api('/api/gw/' + action, { id: g.id }); S.gws[d.giveaway.id] = d.giveaway; if (S.view.channel === g.channel) renderMessages(); if (action === 'join') toast(d.giveaway.entrants.indexOf(S.me.id) >= 0 ? '🎉 Du nimmst teil – viel Glück!' : 'Du nimmst nicht mehr teil'); }
+  catch (e) { toast(e.message, true); }
+}
+function gwCard(g) {
+  var s = S.servers[g.serverId], man = s && canManage(s), joined = g.entrants.indexOf(S.me.id) >= 0;
+  var winners = (g.winnerIds || []).map(function (id) { return '@' + nameOf(id); }).join(', ');
+  var won = (g.winnerIds || []).indexOf(S.me.id) >= 0;
+  return el('div', { class: 'gw' + (g.ended ? ' ended' : '') + (won ? ' won' : '') },
+    el('div', { class: 'gw-top' }, el('span', { class: 'gw-tag' }, '🎉 GIVEAWAY'), g.ended ? el('span', { class: 'gw-state' }, 'Beendet') : el('span', { class: 'gw-state live' }, '● Läuft')),
+    el('div', { class: 'gw-prize' }, g.prize),
+    el('div', { class: 'gw-info' },
+      g.ended ? el('div', {}, '🏆 Gewinner: ', el('b', {}, winners || 'niemand')) : el('div', {}, '⏰ Endet in ', el('b', { class: 'gw-cd', 'data-ends': g.endsAt }, fmtLeft(g.endsAt - Date.now()))),
+      el('div', {}, '👥 ', el('b', {}, String(g.entrants.length)), ' Teilnehmer · 🎁 ', el('b', {}, String(g.winners)), ' Gewinner'),
+      el('div', { class: 'muted small' }, 'Gestartet von ' + nameOf(g.hostId))),
+    won ? el('div', { class: 'gw-win' }, '🥳 DU HAST GEWONNEN!') : null,
+    el('div', { class: 'gw-btns' },
+      !g.ended ? el('button', { class: 'btn ' + (joined ? '' : 'primary'), onclick: function () { gwAct('join', g); } }, joined ? '✓ Du bist dabei (austreten)' : '🎉 Teilnehmen') : null,
+      man && !g.ended ? el('button', { class: 'btn small', onclick: function () { confirmBox('Giveaway jetzt beenden und Gewinner auslosen?', 'Beenden', function () { return gwAct('end', g); }); } }, '⏹ Jetzt beenden') : null,
+      man && g.ended ? el('button', { class: 'btn small', onclick: function () { gwAct('reroll', g); } }, '🔄 Neu auslosen') : null));
+}
+function chanSelect(s, val, emptyLabel) {
+  var sel = el('select', { class: 'sel' });
+  if (emptyLabel) sel.append(el('option', { value: '' }, emptyLabel));
+  s.channels.filter(function (c) { return c.type !== 'voice'; }).forEach(function (c) { var o = el('option', { value: c.id }, '# ' + c.name); if (c.id === val) o.selected = true; sel.append(o); });
+  return sel;
+}
+function openGiveaway(s, ch) {
+  if (!hasTextCh(s, ch)) ch = (s.channels.filter(function (c) { return c.type !== 'voice'; })[0] || {}).id;
+  var prize = el('input', { placeholder: 'z. B. 1000 Robux, Nitro, Skin …', maxlength: 100 });
+  var dur = el('select', { class: 'sel' }, [[1, '1 Minute'], [5, '5 Minuten'], [10, '10 Minuten'], [30, '30 Minuten'], [60, '1 Stunde'], [360, '6 Stunden'], [1440, '1 Tag'], [4320, '3 Tage'], [10080, '1 Woche']]
+    .map(function (d) { var o = el('option', { value: d[0] }, d[1]); if (d[0] === 60) o.selected = true; return o; }));
+  var cnt = el('input', { type: 'number', min: 1, max: 20, value: 1 });
+  var chs = chanSelect(s, ch), err = el('div', { class: 'err' });
+  async function go(b) {
+    b.disabled = true;
+    try { var d = await api('/api/gw/create', { serverId: s.id, channel: chs.value, name: prize.value, minutes: +dur.value, count: +cnt.value }); S.gws[d.giveaway.id] = d.giveaway; closeModal(); if (S.view.channel !== d.giveaway.channel) openChannel(d.giveaway.channel); toast('🎉 Giveaway gestartet!'); }
+    catch (e) { err.textContent = e.message; b.disabled = false; }
+  }
+  modal('🎉 Giveaway starten', el('div', {},
+    el('label', {}, 'Was gibt es zu gewinnen?'), prize,
+    el('div', { class: 'row', style: 'align-items:flex-end' },
+      el('div', { style: 'flex:1;min-width:140px' }, el('label', {}, 'Dauer'), dur),
+      el('div', { style: 'width:110px' }, el('label', {}, 'Gewinner'), cnt)),
+    el('label', {}, 'Kanal'), chs, err,
+    el('div', { class: 'row end' }, el('button', { class: 'btn', onclick: closeModal }, 'Abbrechen'), el('button', { class: 'btn primary', onclick: function (e) { go(e.currentTarget); } }, '🎉 Starten'))));
+  prize.focus();
+}
+function hasTextCh(s, ch) { return s.channels.some(function (c) { return c.id === ch && c.type !== 'voice'; }); }
+function toggleRow(label, desc, val, onch) {
+  var cb = el('input', { type: 'checkbox', class: 'swc' }); cb.checked = !!val;
+  cb.onchange = function () { onch(cb.checked); };
+  return el('label', { class: 'trow' }, el('div', {}, el('b', {}, label), desc ? el('small', {}, desc) : null), el('span', { class: 'switch' }, cb, el('i')));
+}
+function openBots(s) {
+  var cfg = Object.assign({}, s.bots || {}), err = el('div', { class: 'err' });
+  var body = el('div', {});
+  function draw() {
+    body.textContent = '';
+    var wCh = chanSelect(s, cfg.welcomeCh, 'Erster Textkanal'); wCh.onchange = function () { cfg.welcomeCh = wCh.value; };
+    var lCh = chanSelect(s, cfg.levelCh, 'Im gleichen Kanal'); lCh.onchange = function () { cfg.levelCh = lCh.value; };
+    var wMsg = el('textarea', { rows: 2, maxlength: 300, placeholder: '👋 Willkommen auf **{server}**, {user}! Du bist Mitglied Nr. {count} ❄️' }); wMsg.value = cfg.welcomeMsg || ''; wMsg.oninput = function () { cfg.welcomeMsg = wMsg.value; };
+    var bMsg = el('textarea', { rows: 2, maxlength: 300, placeholder: '😢 {name} hat **{server}** verlassen.' }); bMsg.value = cfg.leaveMsg || ''; bMsg.oninput = function () { cfg.leaveMsg = bMsg.value; };
+    body.append(
+      el('div', { class: 'botcard' + (cfg.giveaway ? ' on' : '') },
+        el('div', { class: 'bc-head' }, el('div', { class: 'bc-av' }, '🎉'), el('div', { class: 'bc-t' }, el('b', {}, 'Giveaway-Bot'), el('small', {}, 'Gewinnspiele mit Countdown, Teilnehmen-Knopf und automatischer Auslosung')),
+          toggleRow('', '', cfg.giveaway, function (v) { cfg.giveaway = v; draw(); })),
+        cfg.giveaway ? el('div', { class: 'bc-body' }, el('p', { class: 'small' }, 'Starten: 🎉 oben im Chat, Rechtsklick auf einen Kanal oder /giveaway schreiben.')) : null),
+      el('div', { class: 'botcard' + (cfg.galaxy ? ' on' : '') },
+        el('div', { class: 'bc-head' }, el('div', { class: 'bc-av' }, '🌌'), el('div', { class: 'bc-t' }, el('b', {}, 'Galaxy-Bot'), el('small', {}, 'Willkommen, Level-System, Auto-Mod und lustige Befehle')),
+          toggleRow('', '', cfg.galaxy, function (v) { cfg.galaxy = v; draw(); })),
+        cfg.galaxy ? el('div', { class: 'bc-body' },
+          el('h4', {}, '👋 Willkommen & Abschied'),
+          toggleRow('Willkommens-Nachricht', 'Wenn jemand neu auf den Server kommt', cfg.welcomeOn, function (v) { cfg.welcomeOn = v; }),
+          el('label', {}, 'Kanal für Willkommen & Abschied'), wCh,
+          el('label', {}, 'Willkommens-Text (leer = Standard)'), wMsg,
+          toggleRow('Abschieds-Nachricht', 'Wenn jemand den Server verlässt', cfg.leaveOn, function (v) { cfg.leaveOn = v; }),
+          el('label', {}, 'Abschieds-Text (leer = Standard)'), bMsg,
+          el('p', { class: 'small muted', style: 'margin-top:6px' }, 'Platzhalter: {user} = Erwähnung · {name} = Name · {server} = Servername · {count} = Mitgliederzahl'),
+          el('h4', {}, '⭐ Level-System'),
+          toggleRow('Level & XP', 'Für jede Nachricht gibt es XP. Bei Level-Up gratuliert der Bot.', cfg.levelsOn, function (v) { cfg.levelsOn = v; }),
+          el('label', {}, 'Level-Up-Nachrichten in'), lCh,
+          el('h4', {}, '🛡️ Auto-Mod'),
+          toggleRow('Links blockieren', 'Keine Links von normalen Mitgliedern', cfg.antiLink, function (v) { cfg.antiLink = v; }),
+          toggleRow('CAPS blockieren', 'Nachrichten, die fast nur GROSS geschrieben sind', cfg.antiCaps, function (v) { cfg.antiCaps = v; }),
+          toggleRow('Spam blockieren', 'Dieselbe Nachricht 3x in 30 Sekunden', cfg.antiSpam, function (v) { cfg.antiSpam = v; }),
+          el('p', { class: 'small muted' }, 'Admins und der Server-Besitzer werden vom Auto-Mod nicht blockiert.'),
+          el('h4', {}, '💬 Befehle'),
+          el('div', { class: 'cmds' }, SLASH.filter(function (c) { return c.bot === 'galaxy'; }).map(function (c) { return el('div', {}, el('code', {}, c.cmd), ' – ' + c.desc); }))) : null),
+      err,
+      el('div', { class: 'row end' }, el('button', { class: 'btn', onclick: closeModal }, 'Abbrechen'),
+        el('button', { class: 'btn primary', onclick: async function () {
+          try { var d = await api('/api/bots/config', { serverId: s.id, cfg: cfg }); S.servers[d.server.id] = d.server; closeModal(); renderAll(); toast('🤖 Bots gespeichert'); }
+          catch (e) { err.textContent = e.message; }
+        } }, 'Speichern')));
+  }
+  draw();
+  modal('🤖 Bots für „' + s.name + '“', body, { cls: 'wide' });
+}
+var SLASH = [
+  { cmd: '/hilfe', desc: 'Alle Befehle anzeigen', bot: 'galaxy' },
+  { cmd: '/rank', desc: 'Dein Level und deine XP', bot: 'galaxy' },
+  { cmd: '/top', desc: 'Rangliste vom Server', bot: 'galaxy' },
+  { cmd: '/münze', desc: 'Kopf oder Zahl', bot: 'galaxy' },
+  { cmd: '/würfel', desc: 'Würfeln (z. B. /würfel 20)', bot: 'galaxy' },
+  { cmd: '/8ball', desc: 'Frag die magische Kugel', bot: 'galaxy' },
+  { cmd: '/server', desc: 'Infos zum Server', bot: 'galaxy' },
+  { cmd: '/giveaway', desc: 'Gewinnspiel starten (Admins)', bot: 'giveaway' }
+];
+function hideSlash() { var b = $('slash'); if (b) { b.classList.add('hidden'); b.textContent = ''; } }
+function updateSlash() {
+  var box = $('slash'), v = $('input').value, s = curServer();
+  if (!s || !s.bots || v[0] !== '/' || /\s/.test(v)) return hideSlash();
+  var list = SLASH.filter(function (c) { return s.bots[c.bot] && c.cmd.indexOf(v.toLowerCase()) === 0; });
+  if (!list.length) return hideSlash();
+  box.textContent = '';
+  box.append(el('div', { class: 'sl-h' }, 'Befehle'));
+  list.forEach(function (c) {
+    box.append(el('div', { class: 'sl-it', onclick: function () { var i = $('input'); i.value = c.cmd + (c.cmd === '/würfel' || c.cmd === '/8ball' ? ' ' : ''); hideSlash(); i.focus(); if (c.cmd !== '/würfel' && c.cmd !== '/8ball') sendMsg(); } },
+      el('span', { class: 'sl-ic' }, BOTS['bot:' + c.bot].icon), el('b', {}, c.cmd), el('span', { class: 'muted' }, c.desc)));
+  });
+  box.classList.remove('hidden');
 }
 
 // ---------- Sprachkanäle (Gruppen) ----------
@@ -1632,6 +1823,13 @@ async function sendMsg() {
   if (sending || !S.view.channel) return;
   var inp = $('input'), text = inp.value.trim();
   if (!text && !S.pendingImage) return;
+  hideSlash();
+  var cs = curServer();
+  if (cs && /^\/giveaway\b/i.test(text)) {
+    if (!(cs.bots && cs.bots.giveaway)) return toast('Der Giveaway-Bot ist auf diesem Server aus 🤖', true);
+    if (!canManage(cs)) return toast('Nur Admins und der Server-Besitzer können Giveaways starten', true);
+    inp.value = ''; autoGrow(); return openGiveaway(cs, S.view.channel);
+  }
   sending = true; $('btnSend').disabled = true;
   try {
     await api('/api/messages', { channel: S.view.channel, text: text, image: S.pendingImage || undefined });
@@ -1787,6 +1985,9 @@ function openServerInfo() {
     el('p', { class: 'small muted', style: 'margin-top:10px' }, 'Oder Einladungscode: ', el('b', { style: 'letter-spacing:2px;color:var(--head)' }, s.invite), ' ',
       el('a', { href: '#', style: 'color:#00a8fc', onclick: function (e) { e.preventDefault(); copy(s.invite); } }, 'kopieren'))
   ];
+  if (canManage(s)) parts.push(el('hr'), el('h3', {}, '🤖 Bots'),
+    el('p', { class: 'small' }, 'Giveaway-Bot und Galaxy-Bot (Willkommen, Level, Auto-Mod, Befehle) für diesen Server einstellen.'),
+    el('button', { class: 'btn primary', style: 'margin-top:8px', onclick: function () { openBots(s); } }, '🤖 Bots einstellen'));
   if (canManage(s)) {
     var nameIn = el('input', { maxlength: 40 }); nameIn.value = s.name;
     var chIn = el('input', { maxlength: 30, placeholder: 'neuer-kanal' });
@@ -1940,7 +2141,7 @@ function openSettings() {
       catch (e) { colorMsg.className = 'fmsg bad'; colorMsg.textContent = e.message; }
     }, 250);
   }
-  function pick(c) { color = c; picker.value = c; preview.style.background = c; drawSw(); saveColor(); }
+  function pick(c) { color = c; picker.value = c; if (!S.me.avatar) preview.style.background = c; drawSw(); saveColor(); }
   var picker = el('input', { type: 'color', class: 'colorpick', title: 'Eigene Farbe', value: color });
   picker.oninput = function () { pick(picker.value); };
   function drawSw() {
@@ -1952,8 +2153,33 @@ function openSettings() {
   var about = el('textarea', { rows: 3, maxlength: 190, placeholder: 'Erzähl was über dich …' }); about.value = S.me.about || '';
   var err1 = el('div', { class: 'err' }), err2 = el('div', { class: 'err' });
   var old = el('input', { type: 'password', autocomplete: 'current-password' }), nw = el('input', { type: 'password', autocomplete: 'new-password' }), nw2 = el('input', { type: 'password', autocomplete: 'new-password' });
+  var picIn = el('input', { type: 'file', accept: 'image/png,image/jpeg,image/gif,image/webp', style: 'display:none' });
+  var picMsg = el('div', { class: 'fmsg' });
+  function setPreview() { var np = avatar(S.me, 56); preview.replaceWith(np); preview = np; }
+  picIn.onchange = function () {
+    var f = picIn.files[0]; picIn.value = ''; if (!f) return;
+    if (!/^image\//.test(f.type)) { picMsg.className = 'fmsg bad'; picMsg.textContent = 'Nur Bilder!'; return; }
+    var img = new Image(), url = URL.createObjectURL(f);
+    img.onload = async function () {
+      var c = document.createElement('canvas'), z = 256; c.width = z; c.height = z;
+      var m = Math.min(img.width, img.height), sx = (img.width - m) / 2, sy = (img.height - m) / 2;
+      c.getContext('2d').drawImage(img, sx, sy, m, m, 0, 0, z, z);
+      URL.revokeObjectURL(url);
+      var data = c.toDataURL('image/webp', 0.9); if (data.indexOf('data:image/webp') !== 0) data = c.toDataURL('image/png');
+      try { var d = await api('/api/profile/avatar', { image: data }); d.user.online = true; S.users[d.user.id] = d.user; S.me = d.user; setPreview(); renderAll(); picMsg.className = 'fmsg ok'; picMsg.textContent = '✓ Profilbild gespeichert'; }
+      catch (e) { picMsg.className = 'fmsg bad'; picMsg.textContent = e.message; }
+    };
+    img.onerror = function () { picMsg.className = 'fmsg bad'; picMsg.textContent = 'Das Bild konnte nicht geladen werden'; };
+    img.src = url;
+  };
   modal('Einstellungen', el('div', {},
     el('div', { class: 'row', style: 'margin-top:0' }, preview, el('div', {}, el('div', { class: 'prof-name', style: 'margin:0' }, S.me.name, roleBadge(S.me)), el('div', { class: 'muted small' }, 'Dabei seit ' + fmtDate(S.me.created)))),
+    el('h3', {}, '🖼️ Profilbild'),
+    el('div', { class: 'row', style: 'margin-top:0' }, picIn,
+      el('button', { class: 'btn primary', onclick: function () { picIn.click(); } }, '🖼️ Bild auswählen'),
+      el('button', { class: 'btn', onclick: async function () {
+        try { var d = await api('/api/profile/avatar', { image: '' }); d.user.online = true; S.users[d.user.id] = d.user; S.me = d.user; setPreview(); renderAll(); picMsg.className = 'fmsg ok'; picMsg.textContent = 'Profilbild entfernt'; }
+        catch (e) { picMsg.className = 'fmsg bad'; picMsg.textContent = e.message; } } }, 'Entfernen')), picMsg,
     el('h3', {}, '🎨 Profilfarbe'), el('p', { class: 'small muted', style: 'margin-bottom:8px' }, 'Klick auf eine Farbe – sie wird sofort gespeichert.'), sw, colorMsg,
     el('label', {}, 'Über mich'), about,
     el('div', { class: 'row' }, el('button', { class: 'btn primary', onclick: async function () {
@@ -1996,6 +2222,7 @@ $('authForm').onsubmit = async function (e) {
 };
 var inp = $('input');
 inp.addEventListener('keydown', function (e) {
+  if (e.key === 'Tab' && $('slash') && !$('slash').classList.contains('hidden')) { e.preventDefault(); var f = $('slash').querySelector('.sl-it'); if (f) f.click(); return; }
   if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); sendMsg(); }
   else if (e.key === 'ArrowUp' && !inp.value) {
     var list = S.msgs[S.view.channel] || [];
@@ -2003,7 +2230,7 @@ inp.addEventListener('keydown', function (e) {
   }
 });
 inp.addEventListener('input', function () {
-  autoGrow();
+  autoGrow(); updateSlash();
   var t = Date.now();
   if (inp.value && S.view.channel && t - S.lastTyping > 3000) { S.lastTyping = t; api('/api/typing', { channel: S.view.channel }).catch(function () {}); }
 });
