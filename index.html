@@ -44,10 +44,18 @@ nav a{margin-left:auto;color:#9fc4ff;text-decoration:none;font-weight:600}
 .rel b{color:#bfe6ff}.rel span{color:#8aa0bf;font-size:13px;margin-left:8px}
 .rel div{margin-top:6px;color:#cfe0f5;white-space:pre-wrap;font-size:14px}
 footer{text-align:center;color:#6f84a3;font-size:13px;margin-top:50px}
+.joinbox{position:fixed;inset:0;z-index:5;display:flex;align-items:center;justify-content:center;padding:20px}
+.joinbox .jc{background:rgba(12,18,36,.8);border:1px solid rgba(255,255,255,.12);border-radius:22px;padding:34px;max-width:440px;width:100%;text-align:center;backdrop-filter:blur(10px)}
+.joinbox img{width:96px;filter:drop-shadow(0 10px 30px rgba(109,93,252,.7))}
+.joinbox h1{font-size:28px;margin:10px 0 6px;color:#fff}.joinbox p{color:#a9bcd6;line-height:1.5}
+.spin{width:34px;height:34px;border-radius:50%;border:4px solid rgba(255,255,255,.15);border-top-color:#8b7bff;margin:18px auto 0;animation:sp 1s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+.jbtn{display:inline-block;margin-top:16px;padding:12px 22px;border-radius:12px;background:rgba(255,255,255,.1);color:#fff;text-decoration:none;font-weight:700;border:0;font:inherit;cursor:pointer}
 </style>
 </head>
 <body>
 <canvas id="snow"></canvas>
+<div class="joinbox" id="joinbox" style="display:none"><div class="jc"><img src="logo.svg" alt=""><h1 id="jt">Verbinde …</h1><p id="jp">Ich suche den Frostbyte von deinem Freund.</p><div class="spin" id="jspin"></div><div id="jx"></div></div></div>
 <div class="wrap">
   <nav><img src="logo.svg" alt=""><b>Frostbyte</b><a href="https://github.com/ossimaxi956-oss/frostbyte/releases">Alle Versionen</a></nav>
   <section class="hero">
@@ -56,7 +64,7 @@ footer{text-align:center;color:#6f84a3;font-size:13px;margin-top:50px}
     <p>Dein eigener Winter-Chat ❄️ Chatten, Freunde adden, Server erstellen und telefonieren – ohne E-Mail, nur mit Name und Passwort.</p>
     <a class="dl" id="dl" href="https://github.com/ossimaxi956-oss/frostbyte/releases/latest/download/Frostbyte.exe">⬇️ Für Windows herunterladen</a>
     <div class="ver" id="ver">Neueste Version wird geladen …</div>
-    <div class="alt">Handy oder Tablet? Lass dir vom Owner den Internet-Link geben – das geht direkt im Browser.</div>
+    <div class="alt">👉 <b>Nur der Gastgeber</b> braucht die App. <b>Freunde</b> öffnen einfach den Einladungs-Link vom Gastgeber – im Browser, am PC, Handy oder Tablet.</div>
   </section>
 
   <div class="grid">
@@ -74,7 +82,8 @@ footer{text-align:center;color:#6f84a3;font-size:13px;margin-top:50px}
       <li>Klick oben auf <b>„Für Windows herunterladen“</b>.</li>
       <li>Öffne <code>Frostbyte.exe</code> (am besten vorher auf den Desktop ziehen).</li>
       <li>Frostbyte öffnet sich von selbst – registriere dich mit Name und Passwort.</li>
-      <li>Klick oben links aufs ❄️-Logo → <b>„Freund hinzufügen“</b> → dort steht dein Link für Freunde.</li>
+      <li>Klick oben links aufs Logo → <b>„Freund hinzufügen“</b> → dort steht dein <b>fester Einladungs-Link</b>. Den schickst du deinen Freunden.</li>
+      <li>Deine Freunde öffnen den Link und registrieren sich – fertig! (Sie müssen nichts herunterladen.)</li>
     </ol>
     <div class="note">⚠️ Windows zeigt beim ersten Start vielleicht <b>„Der Computer wurde durch Windows geschützt“</b>. Klick dann auf <b>„Weitere Informationen“</b> → <b>„Trotzdem ausführen“</b>. Das kommt, weil Frostbyte neu und noch nicht bekannt ist.</div>
   </div>
@@ -84,6 +93,37 @@ footer{text-align:center;color:#6f84a3;font-size:13px;margin-top:50px}
 </div>
 <script>
 (function () {
+  // ===== Fester Einladungs-Link: ?join=CODE =====
+  var jm = /[?&]join=([a-z0-9]{6,20})/i.exec(location.search);
+  if (jm) {
+    var code = jm[1].toLowerCase();
+    document.querySelector('.wrap').style.display = 'none';
+    document.getElementById('joinbox').style.display = 'flex';
+    document.title = 'Frostbyte – Einladung';
+    var tries = 0;
+    var look = function () {
+      tries++;
+      fetch('https://ntfy.sh/frostbyte-' + code + '/json?poll=1&since=12h', { cache: 'no-store' }).then(function (r) { return r.text(); }).then(function (t) {
+        var last = '';
+        t.split('\n').forEach(function (line) { try { var e = JSON.parse(line); if (e.event === 'message') last = e.message; } catch (x) {} });
+        if (/^https:\/\/[a-z0-9-]+\.trycloudflare\.com$/.test(last)) {
+          document.getElementById('jt').textContent = 'Gefunden! ❄️';
+          document.getElementById('jp').textContent = 'Du wirst gleich weitergeleitet …';
+          setTimeout(function () { location.replace(last + '/'); }, 600);
+          return;
+        }
+        document.getElementById('jt').textContent = 'Gerade offline 💤';
+        document.getElementById('jp').textContent = 'Der Frostbyte von deinem Freund ist gerade aus. Er muss Frostbyte auf seinem PC starten. Diese Seite probiert es automatisch weiter …';
+        document.getElementById('jx').innerHTML = '<button class="jbtn" onclick="location.reload()">🔄 Nochmal versuchen</button>';
+        setTimeout(look, 10000);
+      }).catch(function () {
+        document.getElementById('jt').textContent = 'Keine Verbindung';
+        document.getElementById('jp').textContent = 'Bist du mit dem Internet verbunden? Ich probiere es weiter …';
+        setTimeout(look, 10000);
+      });
+    };
+    look();
+  }
   // Neueste Version: zuerst version.json (wird bei jedem Update neu gebaut), dann GitHub
   function fmt(d) { return new Date(d).toLocaleDateString('de-DE', { day: 'numeric', month: 'long', year: 'numeric' }); }
   function showVersion(tag, date, size, url) {
