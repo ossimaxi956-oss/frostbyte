@@ -40,7 +40,7 @@ const (
 	OwnerName     = "Owner"
 	OwnerPassword = "Owner#2026" // nur beim allerersten Start benutzt
 	DefaultPort   = "3000"
-	Version       = "15"
+	Version       = "16"
 )
 
 //go:embed index.html
@@ -93,15 +93,19 @@ type Channel struct {
 	Type string `json:"type,omitempty"` // "" = Text, "voice" = Sprache
 }
 type Server struct {
-	ID       string         `json:"id"`
-	Name     string         `json:"name"`
-	OwnerID  string         `json:"ownerId"`
-	Invite   string         `json:"invite"`
-	Members  []string       `json:"members"`
-	Channels []Channel      `json:"channels"`
-	Created  int64          `json:"created"`
-	Bots     *BotCfg        `json:"bots,omitempty"`
-	XP       map[string]int `json:"xp,omitempty"`
+	ID          string              `json:"id"`
+	Name        string              `json:"name"`
+	OwnerID     string              `json:"ownerId"`
+	Invite      string              `json:"invite"`
+	Members     []string            `json:"members"`
+	Channels    []Channel           `json:"channels"`
+	Created     int64               `json:"created"`
+	Bots        *BotCfg             `json:"bots,omitempty"`
+	XP          map[string]int      `json:"xp,omitempty"`
+	Roles       []*Role             `json:"roles,omitempty"`
+	MemberRoles map[string][]string `json:"memberRoles,omitempty"`
+	Bans        []string            `json:"bans,omitempty"`
+	Icon        string              `json:"icon,omitempty"`
 }
 type Message struct {
 	ID        string              `json:"id"`
@@ -113,6 +117,7 @@ type Message struct {
 	Edited    *int64              `json:"edited"`
 	Reactions map[string][]string `json:"reactions"`
 	Giveaway  string              `json:"giveaway,omitempty"`
+	ReplyTo   string              `json:"replyTo,omitempty"`
 }
 type DM struct {
 	ID    string   `json:"id"`
@@ -400,21 +405,37 @@ type PubUser struct {
 	Avatar  string `json:"avatar,omitempty"`
 }
 type PubServer struct {
-	ID       string    `json:"id"`
-	Name     string    `json:"name"`
-	OwnerID  string    `json:"ownerId"`
-	Invite   string    `json:"invite"`
-	Members  []string  `json:"members"`
-	Channels []Channel `json:"channels"`
-	Main     bool      `json:"main"`
-	Bots     *BotCfg   `json:"bots"`
+	ID          string              `json:"id"`
+	Name        string              `json:"name"`
+	OwnerID     string              `json:"ownerId"`
+	Invite      string              `json:"invite"`
+	Members     []string            `json:"members"`
+	Channels    []Channel           `json:"channels"`
+	Main        bool                `json:"main"`
+	Bots        *BotCfg             `json:"bots"`
+	Roles       []*Role             `json:"roles"`
+	MemberRoles map[string][]string `json:"memberRoles"`
+	Bans        []string            `json:"bans"`
+	Icon        string              `json:"icon,omitempty"`
 }
 
 func pubUser(u *User) PubUser {
 	return PubUser{u.ID, u.Name, u.Color, u.Role, u.About, u.Banned, u.Created, isOnline(u.ID), u.Avatar}
 }
 func pubServer(s *Server) PubServer {
-	return PubServer{s.ID, s.Name, s.OwnerID, s.Invite, s.Members, s.Channels, s.ID == db.MainServer, botsOf(s)}
+	roles := s.Roles
+	if roles == nil {
+		roles = []*Role{}
+	}
+	mr := s.MemberRoles
+	if mr == nil {
+		mr = map[string][]string{}
+	}
+	bans := s.Bans
+	if bans == nil {
+		bans = []string{}
+	}
+	return PubServer{s.ID, s.Name, s.OwnerID, s.Invite, s.Members, s.Channels, s.ID == db.MainServer, botsOf(s), roles, mr, bans, s.Icon}
 }
 
 type ChCtx struct {
@@ -475,6 +496,7 @@ type Body struct {
 	Cfg       json.RawMessage `json:"cfg"`
 	Minutes   int             `json:"minutes"`
 	Count     int             `json:"count"`
+	ReplyTo   string          `json:"replyTo"`
 }
 
 func sortedPair(a, b string) []string {
@@ -572,13 +594,13 @@ var (
 	spam       = map[string][]int64{}
 )
 
-func getServer(u *User, id string, manage bool) (*Server, error) {
+func getServer(u *User, id string, perm string) (*Server, error) {
 	s := db.Servers[id]
 	if s == nil || !contains(s.Members, u.ID) {
 		return nil, fail(404, "Server nicht gefunden")
 	}
-	if manage && !canManage(u, s) {
-		return nil, fail(403, "Nur der Server-Besitzer oder Admins dürfen das")
+	if perm != "" && !hasPerm(u, s, perm) {
+		return nil, fail(403, "Dafür fehlt dir das Recht „"+permNames[perm]+"“")
 	}
 	return s, nil
 }
@@ -662,6 +684,7 @@ func friendsChanged(a, b string) {
 
 func setupRoutes() {
 	setupBotRoutes()
+	setupRoleRoutes()
 	routes["GET /api/info"] = Route{func(c *Ctx) (any, error) { return M{"app": AppName, "version": Version}, nil }, false, 0}
 	R("POST /api/friends/request", func(c *Ctx) (any, error) {
 		var t *User
@@ -893,6 +916,13 @@ func setupRoutes() {
 		}
 		spam[c.user.ID] = append(arr, t)
 		m := &Message{ID: newID(), Channel: ch, UserID: c.user.ID, Text: text, Image: img, Ts: t, Reactions: map[string][]string{}}
+		if c.b.ReplyTo != "" && len(c.b.ReplyTo) < 40 {
+			for _, x := range db.Messages[ch] {
+				if x.ID == c.b.ReplyTo {
+					m.ReplyTo = x.ID
+				}
+			}
+		}
 		list := append(db.Messages[ch], m)
 		if len(list) > 2000 {
 			list = list[len(list)-2000:]
@@ -941,7 +971,7 @@ func setupRoutes() {
 		}
 		list := db.Messages[c.b.Channel]
 		m := list[i]
-		ok := m.UserID == c.user.ID || isMod(c.user) || (!cc.isDM && cc.server.OwnerID == c.user.ID)
+		ok := m.UserID == c.user.ID || isMod(c.user) || (!cc.isDM && hasPerm(c.user, cc.server, "manageMessages"))
 		if !ok {
 			return nil, fail(403, "Das darfst du nicht löschen")
 		}
@@ -1014,6 +1044,9 @@ func setupRoutes() {
 		code := strings.ToUpper(strings.TrimSpace(c.b.Invite))
 		for _, s := range db.Servers {
 			if s.Invite == code {
+				if contains(s.Bans, c.user.ID) {
+					return nil, fail(403, "Du wurdest von diesem Server gebannt")
+				}
 				if !contains(s.Members, c.user.ID) {
 					s.Members = append(s.Members, c.user.ID)
 					out, _ := serverChanged(s)
@@ -1026,7 +1059,7 @@ func setupRoutes() {
 		return nil, fail(404, "Dieser Einladungscode ist ungültig")
 	})
 	R("POST /api/servers/add", func(c *Ctx) (any, error) {
-		s, err := getServer(c.user, c.b.ServerID, false)
+		s, err := getServer(c.user, c.b.ServerID, "")
 		if err != nil {
 			return nil, err
 		}
@@ -1045,6 +1078,9 @@ func setupRoutes() {
 		if contains(s.Members, t.ID) {
 			return nil, fail(400, t.Name+" ist schon auf dem Server")
 		}
+		if contains(s.Bans, t.ID) {
+			return nil, fail(403, t.Name+" ist von diesem Server gebannt (Server-Einstellungen → Bans)")
+		}
 		s.Members = append(s.Members, t.ID)
 		send([]string{t.ID}, "server_added", M{"name": s.Name, "by": c.user.Name})
 		out, _ := serverChanged(s)
@@ -1053,7 +1089,7 @@ func setupRoutes() {
 		return out, nil
 	})
 	R("POST /api/servers/rename", func(c *Ctx) (any, error) {
-		s, err := getServer(c.user, c.b.ServerID, true)
+		s, err := getServer(c.user, c.b.ServerID, "manageServer")
 		if err != nil {
 			return nil, err
 		}
@@ -1068,7 +1104,7 @@ func setupRoutes() {
 		return serverChanged(s)
 	})
 	R("POST /api/servers/leave", func(c *Ctx) (any, error) {
-		s, err := getServer(c.user, c.b.ServerID, false)
+		s, err := getServer(c.user, c.b.ServerID, "")
 		if err != nil {
 			return nil, err
 		}
@@ -1078,15 +1114,14 @@ func setupRoutes() {
 		if s.OwnerID == c.user.ID {
 			return nil, fail(400, "Du bist der Besitzer – lösche den Server stattdessen")
 		}
-		s.Members = without(s.Members, c.user.ID)
-		vcKick(c.user.ID, s.ID)
+		removeMember(s, c.user.ID)
 		serverChanged(s)
 		botLeave(s, c.user)
 		send([]string{c.user.ID}, "server_removed", M{"serverId": s.ID})
 		return nil, nil
 	})
 	R("POST /api/servers/delete", func(c *Ctx) (any, error) {
-		s, err := getServer(c.user, c.b.ServerID, false)
+		s, err := getServer(c.user, c.b.ServerID, "")
 		if err != nil {
 			return nil, err
 		}
@@ -1106,7 +1141,7 @@ func setupRoutes() {
 		return nil, nil
 	})
 	R("POST /api/servers/kick", func(c *Ctx) (any, error) {
-		s, err := getServer(c.user, c.b.ServerID, true)
+		s, err := getServer(c.user, c.b.ServerID, "kick")
 		if err != nil {
 			return nil, err
 		}
@@ -1117,18 +1152,17 @@ func setupRoutes() {
 		if t == nil || !contains(s.Members, t.ID) {
 			return nil, fail(404, "Nicht auf dem Server")
 		}
-		if t.ID == s.OwnerID || t.Role == "owner" || t.ID == c.user.ID {
+		if t.ID == c.user.ID || !outranks(c.user, t, s) {
 			return nil, fail(403, "Diese Person kannst du nicht kicken")
 		}
-		s.Members = without(s.Members, t.ID)
-		vcKick(t.ID, s.ID)
+		removeMember(s, t.ID)
 		out, _ := serverChanged(s)
 		botLeave(s, t)
 		send([]string{t.ID}, "server_removed", M{"serverId": s.ID})
 		return out, nil
 	})
 	R("POST /api/channels/create", func(c *Ctx) (any, error) {
-		s, err := getServer(c.user, c.b.ServerID, true)
+		s, err := getServer(c.user, c.b.ServerID, "manageChannels")
 		if err != nil {
 			return nil, err
 		}
@@ -1151,7 +1185,7 @@ func setupRoutes() {
 		return serverChanged(s)
 	})
 	R("POST /api/channels/delete", func(c *Ctx) (any, error) {
-		s, err := getServer(c.user, c.b.ServerID, true)
+		s, err := getServer(c.user, c.b.ServerID, "manageChannels")
 		if err != nil {
 			return nil, err
 		}
@@ -1182,7 +1216,7 @@ func setupRoutes() {
 		return serverChanged(s)
 	})
 	R("POST /api/channels/rename", func(c *Ctx) (any, error) {
-		s, err := getServer(c.user, c.b.ServerID, true)
+		s, err := getServer(c.user, c.b.ServerID, "manageChannels")
 		if err != nil {
 			return nil, err
 		}

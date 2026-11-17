@@ -155,7 +155,7 @@ var lastMsgTs = map[string][]int64{}
 
 func botAutomod(s *Server, u *User, text string) error {
 	b := botsOf(s)
-	if !b.Galaxy || canManage(u, s) {
+	if !b.Galaxy || hasPerm(u, s, "manageMessages") {
 		return nil
 	}
 	low := strings.ToLower(text)
@@ -375,7 +375,11 @@ func getGW(c *Ctx, manage bool) (*Giveaway, *Server, error) {
 	if g == nil {
 		return nil, nil, fail(404, "Giveaway nicht gefunden")
 	}
-	s, err := getServer(c.user, g.ServerID, manage)
+	perm := ""
+	if manage {
+		perm = "giveaway"
+	}
+	s, err := getServer(c.user, g.ServerID, perm)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -384,7 +388,7 @@ func getGW(c *Ctx, manage bool) (*Giveaway, *Server, error) {
 
 func setupBotRoutes() {
 	R("POST /api/bots/config", func(c *Ctx) (any, error) {
-		s, err := getServer(c.user, c.b.ServerID, true)
+		s, err := getServer(c.user, c.b.ServerID, "manageServer")
 		if err != nil {
 			return nil, err
 		}
@@ -407,7 +411,7 @@ func setupBotRoutes() {
 		return serverChanged(s)
 	})
 	R("POST /api/gw/create", func(c *Ctx) (any, error) {
-		s, err := getServer(c.user, c.b.ServerID, true)
+		s, err := getServer(c.user, c.b.ServerID, "giveaway")
 		if err != nil {
 			return nil, err
 		}

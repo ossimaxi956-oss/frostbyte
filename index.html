@@ -293,8 +293,8 @@ input,textarea{font:inherit;color:var(--text)}
 .gw-info{display:flex;flex-direction:column;gap:4px;font-size:14px;color:#dfe5ff}
 .gw-win{margin-top:10px;font-weight:900;color:#ffc857;font-size:16px}
 .gw-btns{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
-.sel{width:100%;background:rgba(0,0,0,.35);color:var(--text);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:10px;font:inherit}
-.sel option{background:#0d1426}
+.fsel{width:100%;background:rgba(0,0,0,.35);color:var(--text);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:10px;font:inherit}
+.fsel option{background:#0d1426}
 .botcard{border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:14px;margin-bottom:12px;background:rgba(255,255,255,.03)}
 .botcard.on{border-color:rgba(124,108,255,.5);background:linear-gradient(145deg,rgba(124,108,255,.12),rgba(46,230,245,.05))}
 .bc-head{display:flex;align-items:center;gap:12px}
@@ -451,6 +451,70 @@ body:before{content:"";position:fixed;inset:-20%;z-index:-1;pointer-events:none;
 .badge-role.owner{background:linear-gradient(135deg,#ffc857,#ff9f43);color:#1a1205}
 .badge-role.admin{background:linear-gradient(135deg,#ff4d6d,#e11d48)}
 @media (max-width:760px){#app{padding:0;gap:0}#rail,#side,#main,#members{border-radius:0;border:0}}
+
+#ssettings{position:fixed;inset:0;z-index:45;background:rgba(3,5,12,.86);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);animation:pop .15s}
+.ss-wrap{display:flex;height:100%}
+.ss-nav{width:280px;flex-shrink:0;display:flex;justify-content:flex-end;background:rgba(10,14,28,.7);border-right:1px solid rgba(255,255,255,.06);overflow-y:auto}
+.ss-nav-in{width:220px;padding:50px 10px 30px}
+.ss-h{font-size:11px;font-weight:800;color:#8e9bc2;letter-spacing:.08em;text-transform:uppercase;padding:14px 10px 6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ss-item{display:flex;align-items:center;gap:10px;width:100%;text-align:left;padding:8px 10px;border-radius:8px;color:#b9c3e3;font-weight:600;margin:1px 0}
+.ss-item:hover{background:rgba(255,255,255,.06);color:#fff}
+.ss-item.on{background:linear-gradient(90deg,rgba(124,108,255,.4),rgba(124,108,255,.12));color:#fff}
+.ss-ic{width:20px;text-align:center}
+.ss-main{flex:1;overflow-y:auto;position:relative}
+.ss-content{max-width:760px;padding:50px 40px 120px}
+.ss-closebox{position:fixed;top:44px;right:40px;display:flex;flex-direction:column;align-items:center;gap:4px;color:#8e9bc2;font-size:11px;font-weight:700}
+.ss-close{width:38px;height:38px;border-radius:50%;border:2px solid rgba(255,255,255,.3);color:#fff;font-size:16px}
+.ss-close:hover{background:rgba(255,255,255,.1)}
+.ss-title{margin-bottom:18px}.ss-title h2{font-size:24px;font-weight:900;color:#fff}.ss-title p{color:#8e9bc2;margin-top:4px}
+.ss-card{background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:16px;margin-bottom:14px}
+.ss-card.danger{border-color:rgba(255,77,109,.35);background:rgba(255,77,109,.05)}
+.ss-card label{display:block;font-size:12px;font-weight:700;color:#a9b4d6;margin:12px 0 6px;text-transform:uppercase;letter-spacing:.03em}
+.ss-card input:not([type=checkbox]):not([type=color]),.ss-card textarea,#ssettings>.ss-wrap input[placeholder]{width:100%;background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:10px;outline:none;color:var(--text);font:inherit}
+.ss-card textarea{resize:vertical}
+.ss-lbl{display:block;color:#fff;margin-bottom:6px}
+.ss-row{display:flex;gap:18px;align-items:center;flex-wrap:wrap}
+.ss-icon{width:96px;height:96px;border-radius:24px;background:linear-gradient(135deg,#2ee6f5,#6d5dfc,#e14bd6);display:flex;align-items:center;justify-content:center;font-size:32px;font-weight:900;color:#fff;overflow:hidden;flex-shrink:0}
+.ss-icon img{width:100%;height:100%;object-fit:cover}
+.ss-cardh{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.ss-cardh b{color:#fff}
+.ss-li{display:flex;align-items:center;gap:10px;padding:10px;border-radius:10px;flex-wrap:wrap}
+.ss-li:hover{background:rgba(255,255,255,.04)}
+.ss-li+.ss-li{border-top:1px solid rgba(255,255,255,.05)}
+.mem-li .fname{display:flex;gap:6px;align-items:center}
+.role-grid{display:grid;grid-template-columns:230px 1fr;gap:16px;align-items:start}
+.role-list{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:10px;position:sticky;top:20px}
+.role-row{display:flex;align-items:center;gap:8px;padding:8px;border-radius:8px;cursor:pointer}
+.role-row:hover{background:rgba(255,255,255,.05)}
+.role-row.on{background:rgba(124,108,255,.25)}
+.role-row .rn{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600;color:#fff}
+.rmove{display:flex;gap:2px}.rmove button{width:20px;height:20px;border-radius:4px;color:#8e9bc2;font-size:10px}.rmove button:hover{background:rgba(255,255,255,.1);color:#fff}
+.rdot{display:inline-block;width:12px;height:12px;border-radius:50%;flex-shrink:0;margin-right:4px;vertical-align:middle}
+.rchips{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:4px}
+.rchip{display:inline-flex;align-items:center;gap:4px;background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:2px 8px;font-size:12px;color:#dfe5ff}
+.rchip button{color:#8e9bc2;font-size:11px;margin-left:2px}.rchip button:hover{color:#ff6b81}
+.fsel.mini{width:auto;padding:3px 8px;font-size:12px;border-radius:12px}
+.savebar{position:sticky;bottom:16px;display:flex;align-items:center;gap:10px;padding:12px 16px;border-radius:14px;background:#0a0f1e;border:1px solid rgba(124,108,255,.5);box-shadow:0 10px 30px rgba(0,0,0,.6);margin-top:10px}
+.savebar span{flex:1;font-weight:600;color:#fff}
+.bc-foot{display:flex;justify-content:space-between;align-items:center;margin-top:12px;padding-top:10px;border-top:1px solid rgba(255,255,255,.06)}
+.oktxt{color:#2ee59d;font-weight:700}
+.sect{padding:0;overflow:hidden}
+.sect-h{display:flex;align-items:center;gap:12px;padding:14px 16px}
+.sect-h b{display:block;color:#fff}.sect-h small{display:block;color:#8e9bc2;font-size:12px}
+.sect-ic{width:40px;height:40px;border-radius:12px;background:rgba(255,255,255,.06);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.sect.on{border-color:rgba(46,229,157,.35)}
+.sect.on .sect-ic{background:linear-gradient(135deg,rgba(46,229,157,.3),rgba(20,184,166,.2))}
+.sect-b{padding:0 16px 16px;border-top:1px solid rgba(255,255,255,.06)}
+.reply{display:flex;align-items:center;gap:6px;font-size:13px;color:#a9b4d6;margin:0 0 2px -2px;cursor:pointer;position:relative;white-space:nowrap;overflow:hidden}
+.reply:before{content:"";position:absolute;left:-38px;top:9px;width:30px;height:10px;border-left:2px solid rgba(255,255,255,.2);border-top:2px solid rgba(255,255,255,.2);border-top-left-radius:8px}
+.reply span{overflow:hidden;text-overflow:ellipsis;opacity:.85}
+.reply:hover span{opacity:1;color:#fff}
+.msg.hasreply>.av{top:26px}
+.msg.flash{background:rgba(124,108,255,.18)!important;transition:background 1s}
+.replybar{display:flex;align-items:center;justify-content:space-between;background:rgba(124,108,255,.12);border:1px solid rgba(124,108,255,.35);border-bottom:0;border-radius:12px 12px 0 0;padding:6px 12px;font-size:13px;color:#cfd6f5}
+.replybar:not(.hidden)+.preview,.replybar:not(.hidden)~.composer{border-top-left-radius:0;border-top-right-radius:0}
+.rail-item .icon img.sicon{width:100%;height:100%;object-fit:cover}
+@media (max-width:760px){.ss-wrap{flex-direction:column}.ss-nav{width:100%;justify-content:flex-start;max-height:180px}.ss-nav-in{width:100%;padding:12px;display:flex;flex-wrap:wrap;gap:4px}.ss-h{width:100%;padding:6px 4px 2px}.ss-item{width:auto}.ss-content{padding:20px 14px 100px}.ss-closebox{top:10px;right:10px}.role-grid{grid-template-columns:1fr}.role-list{position:static}}
 </style>
 </head>
 <body>
@@ -490,6 +554,7 @@ body:before{content:"";position:fixed;inset:-20%;z-index:-1;pointer-events:none;
     <div id="msgs"></div>
     <div id="composerWrap" class="composer-wrap">
       <div id="slash" class="slash hidden"></div>
+      <div id="replybar" class="replybar hidden"></div>
       <div id="preview" class="preview hidden"></div>
       <div class="composer">
         <button type="button" class="iconbtn" id="btnImg" title="Bild senden">🖼️</button>
@@ -504,6 +569,7 @@ body:before{content:"";position:fixed;inset:-20%;z-index:-1;pointer-events:none;
   <aside id="members"></aside>
   <div id="backdrop"></div>
 </div>
+<div id="ssettings" class="hidden"></div>
 <div id="modal" class="hidden"></div>
 <div id="toasts"></div>
 <canvas id="snow"></canvas>
@@ -563,7 +629,21 @@ function copy(text) {
   else toast('Code: ' + text + ' (bitte abschreiben)');
 }
 function isMod() { return S.me && (S.me.role === 'owner' || S.me.role === 'admin'); }
-function canManage(s) { return !!s && (s.ownerId === S.me.id || isMod()); }
+function perm(s, p) {
+  if (!s || !S.me) return false;
+  if (s.ownerId === S.me.id || isMod()) return true;
+  return ((s.memberRoles || {})[S.me.id] || []).some(function (rid) {
+    var r = (s.roles || []).filter(function (x) { return x.id === rid; })[0];
+    return r && (r.perms.indexOf('admin') >= 0 || r.perms.indexOf(p) >= 0);
+  });
+}
+function canManage(s) { return ['manageServer', 'manageChannels', 'manageRoles', 'kick', 'ban', 'giveaway'].some(function (p) { return perm(s, p); }); }
+function rolesOf(s, uid) {
+  if (!s) return [];
+  var ids = (s.memberRoles || {})[uid] || [];
+  return (s.roles || []).filter(function (r) { return ids.indexOf(r.id) >= 0; });
+}
+function nameColor(s, u) { var r = rolesOf(s, u.id).filter(function (r) { return r.color; })[0]; return r ? r.color : u.color; }
 function curServer() { return S.view.server && S.view.server !== 'dm' ? S.servers[S.view.server] : null; }
 function dmPartner(dm) { var id = dm.users.filter(function (x) { return x !== S.me.id; })[0] || S.me.id; return S.users[id] || { id: id, name: 'Unbekannt', color: '#6f84a3', role: 'user' }; }
 function sortedDms() { return Object.values(S.dms).sort(function (a, b) { return (b.last || 0) - (a.last || 0); }); }
@@ -720,6 +800,7 @@ function handle(type, d) {
       break;
     case 'server_update':
       S.servers[d.id] = d;
+      if (SS && SS.sid === d.id) { var ae = document.activeElement; if (!(ae && $('ssettings').contains(ae) && /INPUT|TEXTAREA|SELECT/.test(ae.tagName)) && !SS.dirty) renderSS(); }
       if (S.view.server === d.id && S.view.channel && !d.channels.some(function (c) { return c.id === S.view.channel; })) selectServer(d.id);
       else { renderRail(); renderSide(); renderHead(); renderMembers(); }
       break;
@@ -750,6 +831,7 @@ function handle(type, d) {
       toast('🎉 ' + d.by + ' hat dich zu „' + d.name + '“ hinzugefügt!'); beep();
       break;
     case 'server_removed':
+      if (SS && SS.sid === d.serverId) closeSS();
       if (S.servers[d.serverId]) {
         var name = S.servers[d.serverId].name; delete S.servers[d.serverId];
         if (S.view.server === d.serverId) { toast('Du bist nicht mehr auf „' + name + '“'); selectServer(S.main); } else renderRail();
@@ -821,7 +903,7 @@ function selectServer(id) {
   openChannel(s.channels.some(function (c) { return c.id === lc && c.type !== 'voice'; }) ? lc : first.id);
 }
 function openChannel(ch) {
-  S.view.channel = ch; S.editing = null; S.stick = true;
+  S.view.channel = ch; S.editing = null; S.stick = true; if (typeof cancelReply === 'function') cancelReply();
   if (ch) { S.unread[ch] = 0; S.lastChan[S.view.server] = ch; }
   try { localStorage.setItem('mc_view', JSON.stringify({ server: S.view.server, lastChan: S.lastChan })); } catch (e) {}
   $('app').classList.remove('nav-open');
@@ -852,7 +934,7 @@ function renderRail() {
   r.append(el('div', { class: 'rail-sep' }));
   Object.values(S.servers).sort(function (a, b) { return (b.main ? 1 : 0) - (a.main ? 1 : 0) || a.name.localeCompare(b.name); }).forEach(function (s) {
     var un = s.channels.some(function (c) { return S.unread[c.id] > 0; });
-    var ri = railItem({ icon: initials(s.name), title: s.name, active: S.view.server === s.id, unread: un, onclick: function () { selectServer(s.id); } });
+    var ri = railItem({ icon: s.icon ? el('img', { src: s.icon, alt: '', class: 'sicon' }) : initials(s.name), title: s.name, active: S.view.server === s.id, unread: un, onclick: function () { selectServer(s.id); } });
     ri.oncontextmenu = function (e) { serverMenu(e, s); }; longPress(ri, function (e) { serverMenu(e, s); });
     r.append(ri);
   });
@@ -879,13 +961,13 @@ function renderSide() {
     });
   } else {
     var s = curServer(); if (!s) return;
-    head.classList.add('click'); head.onclick = openServerInfo;
+    head.classList.add('click'); head.onclick = function (e) { openServerSideMenu(s, e); };
     head.append(el('span', { class: 'nm' }, s.name), el('span', {}, '▾'));
-    list.oncontextmenu = function (e) { if (e.target === list && canManage(s)) ctxMenu(e, [
+    list.oncontextmenu = function (e) { if (e.target === list && perm(s, 'manageChannels')) ctxMenu(e, [
       { label: 'Textkanal erstellen', icon: '#', fn: function () { openCreateChannel(s, 'text'); } },
       { label: 'Sprachkanal erstellen', icon: '🔊', fn: function () { openCreateChannel(s, 'voice'); } }]); };
     list.append(el('div', { class: 'cat' }, el('span', {}, 'Textkanäle'),
-      canManage(s) ? el('button', { title: 'Textkanal erstellen', onclick: function (e) { e.stopPropagation(); openCreateChannel(s, 'text'); } }, '+') : null));
+      perm(s, 'manageChannels') ? el('button', { title: 'Textkanal erstellen', onclick: function (e) { e.stopPropagation(); openCreateChannel(s, 'text'); } }, '+') : null));
     s.channels.filter(function (c) { return c.type !== 'voice'; }).forEach(function (c) {
       var n = S.unread[c.id] || 0;
       var row = el('div', { class: 'chan' + (c.id === S.view.channel ? ' active' : '') + (n ? ' unread' : ''), onclick: function () { openChannel(c.id); },
@@ -895,7 +977,7 @@ function renderSide() {
       list.append(row);
     });
     list.append(el('div', { class: 'cat' }, el('span', {}, 'Sprachkanäle'),
-      canManage(s) ? el('button', { title: 'Sprachkanal erstellen', onclick: function (e) { e.stopPropagation(); openCreateChannel(s, 'voice'); } }, '+') : null));
+      perm(s, 'manageChannels') ? el('button', { title: 'Sprachkanal erstellen', onclick: function (e) { e.stopPropagation(); openCreateChannel(s, 'voice'); } }, '+') : null));
     s.channels.filter(function (c) { return c.type === 'voice'; }).forEach(function (c) {
       var inIt = V && V.ch === c.id;
       var row = el('div', { class: 'chan vchan' + (c.id === S.view.channel ? ' active' : '') + (inIt ? ' connected' : ''), onclick: function () { joinVC(c.id); },
@@ -949,9 +1031,9 @@ function renderHead() {
     return;
   } else h.append(el('span', { class: 'title' }, 'Direktnachrichten'));
   h.append(el('div', { style: 'flex:1' }));
-  if (s && s.bots && s.bots.giveaway && canManage(s)) h.append(el('button', { class: 'iconbtn', title: 'Giveaway starten', onclick: function () { openGiveaway(s, S.view.channel); } }, '🎉'));
-  if (s && canManage(s)) h.append(el('button', { class: 'iconbtn', title: 'Bots einstellen', onclick: function () { openBots(s); } }, '🤖'));
-  if (s) h.append(el('button', { class: 'iconbtn', title: 'Freunde einladen', onclick: openServerInfo }, '🔗'));
+  if (s && s.bots && s.bots.giveaway && perm(s, 'giveaway')) h.append(el('button', { class: 'iconbtn', title: 'Giveaway starten', onclick: function () { openGiveaway(s, S.view.channel); } }, '🎉'));
+  if (s && canManage(s)) h.append(el('button', { class: 'iconbtn', title: 'Server-Einstellungen', onclick: function () { openServerSettings(s); } }, '⚙️'));
+  if (s) h.append(el('button', { class: 'iconbtn', title: 'Leute einladen', onclick: function () { openServerSettings(s, 'invite'); } }, '👋'));
   h.append(el('button', { class: 'iconbtn', title: 'Mitglieder', onclick: toggleMembers }, '👥'));
 }
 function renderMessages() {
@@ -978,7 +1060,7 @@ function renderMessages() {
   var prev = null;
   list.forEach(function (m) {
     if (!prev || dayKey(prev.ts) !== dayKey(m.ts)) { box.append(el('div', { class: 'daysep' }, el('span', {}, fmtDay(m.ts)))); prev = null; }
-    var grouped = !!prev && prev.userId === m.userId && m.ts - prev.ts < 7 * 60000;
+    var grouped = !!prev && prev.userId === m.userId && m.ts - prev.ts < 7 * 60000 && !m.replyTo;
     box.append(renderMsg(m, grouped)); prev = m;
   });
   if (S.stick) box.scrollTop = box.scrollHeight; else box.scrollTop = prevTop;
@@ -993,11 +1075,21 @@ function renderMsg(m, grouped) {
     document.querySelectorAll('.msg.sel').forEach(function (x) { if (x !== row) x.classList.remove('sel'); });
     row.classList.toggle('sel');
   });
+  row.setAttribute('data-id', m.id);
+  if (m.replyTo) {
+    var orig = (S.msgs[m.channel] || []).filter(function (x) { return x.id === m.replyTo; })[0];
+    row.classList.add('hasreply');
+    if (orig && orig.userId === S.me.id && !mine) row.classList.add('mentioned');
+    var ou = orig ? userOf(orig.userId) : null;
+    row.append(el('div', { class: 'reply', onclick: function () { var t = document.querySelector('.msg[data-id="' + m.replyTo + '"]'); if (t) { t.scrollIntoView({ block: 'center', behavior: 'smooth' }); t.classList.add('flash'); setTimeout(function () { t.classList.remove('flash'); }, 1200); } } },
+      orig ? [avatar(ou, 16), el('b', { style: 'color:' + nameColor(curServer(), ou) }, '@' + ou.name), el('span', {}, orig.text ? orig.text.slice(0, 100) : (orig.image ? '🖼️ Bild' : orig.giveaway ? '🎉 Giveaway' : ''))]
+           : el('i', {}, 'Originalnachricht wurde gelöscht')));
+  }
   if (grouped) row.append(el('span', { class: 'gtime' }, hhmm(m.ts)));
   else {
     row.append(avatar(u, 40, function () { openProfile(u.id); }));
     row.append(el('div', { class: 'mhead' },
-      el('span', { class: 'mname', style: 'color:' + u.color, onclick: function () { openProfile(u.id); } }, u.name), roleBadge(u),
+      el('span', { class: 'mname', style: 'color:' + nameColor(curServer(), u), onclick: function () { openProfile(u.id); } }, u.name), roleBadge(u),
       el('span', { class: 'mtime', title: new Date(m.ts).toLocaleString('de-DE') }, fmtTime(m.ts))));
   }
   if (S.editing === m.id) {
@@ -1027,9 +1119,10 @@ function renderMsg(m, grouped) {
       onclick: function () { react(m, e); } }, e + ' ' + ids.length);
   })));
   var s = curServer();
-  var canDel = mine || isMod() || (s && s.ownerId === S.me.id);
+  var canDel = mine || isMod() || (s && perm(s, 'manageMessages'));
   row.append(el('div', { class: 'mact' },
     el('button', { title: 'Reagieren', onclick: function (e) { e.stopPropagation(); emojiPicker(e.currentTarget, function (x) { react(m, x); }); } }, '😀'),
+    el('button', { title: 'Antworten', onclick: function () { startReply(m); } }, '↩️'),
     mine ? el('button', { title: 'Bearbeiten', onclick: function () { startEdit(m); } }, '✏️') : null,
     canDel ? el('button', { title: 'Löschen', onclick: function () { delMsg(m); } }, '🗑️') : null,
     !mine && m.userId.indexOf('bot:') !== 0 ? el('button', { title: 'Melden', onclick: function () { reportMsg(m); } }, '🚩') : null));
@@ -1055,7 +1148,7 @@ function renderTyping() {
 }
 function memRow(u, s, off) {
   return el('div', { class: 'mem' + (off ? ' off' : ''), onclick: function () { openProfile(u.id); }, oncontextmenu: function (e) { memberMenu(e, u); } },
-    avatar(u, 32, null, true), el('span', { class: 'nm', style: 'color:' + u.color }, u.name),
+    avatar(u, 32, null, true), el('span', { class: 'nm', style: 'color:' + nameColor(s, u) }, u.name),
     s && u.id === s.ownerId ? el('span', { title: 'Server-Besitzer' }, '👑') : null, roleBadge(u));
 }
 function renderMembers() {
@@ -1080,6 +1173,14 @@ function renderMembers() {
   }
   var mem = s.members.map(function (id) { return S.users[id]; }).filter(Boolean).sort(cmpUser);
   var on = mem.filter(function (u) { return u.online && !u.banned; }), off = mem.filter(function (u) { return !u.online || u.banned; });
+  var placed = {};
+  (s.roles || []).filter(function (r) { return r.hoist; }).forEach(function (r) {
+    var grp = on.filter(function (u) { return !placed[u.id] && rolesOf(s, u.id).filter(function (x) { return x.hoist; })[0] === r; });
+    if (!grp.length) return;
+    box.append(el('div', { class: 'cat' }, el('span', {}, el('i', { class: 'rdot', style: 'background:' + (r.color || '#8e9bc2') }), r.name + ' — ' + grp.length)));
+    grp.forEach(function (u) { placed[u.id] = 1; box.append(memRow(u, s)); });
+  });
+  on = on.filter(function (u) { return !placed[u.id]; });
   if (on.length) { box.append(el('div', { class: 'cat' }, 'Online — ' + on.length)); on.forEach(function (u) { box.append(memRow(u, s)); }); }
   if (off.length) { box.append(el('div', { class: 'cat' }, 'Offline — ' + off.length)); off.forEach(function (u) { box.append(memRow(u, s, true)); }); }
 }
@@ -1150,12 +1251,12 @@ function longPress(node, fn) {
 }
 function copyText(t) { if (navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(t).then(function () { toast('Kopiert ✓'); }); else toast(t); }
 function channelMenu(e, s, c) {
-  var voice = c.type === 'voice', man = canManage(s);
+  var voice = c.type === 'voice', man = perm(s, 'manageChannels');
   ctxMenu(e, [
     voice ? { label: V && V.ch === c.id ? 'Sprachkanal verlassen' : 'Beitreten', icon: V && V.ch === c.id ? '✖' : '🔊', fn: function () { if (V && V.ch === c.id) leaveVC(); else joinVC(c.id); } }
           : { label: 'Als gelesen markieren', icon: '✓', fn: function () { S.unread[c.id] = 0; renderSide(); renderRail(); } },
     voice ? { label: 'Ansehen', icon: '👀', fn: function () { openChannel(c.id); } } : null,
-    !voice && man && s.bots && s.bots.giveaway ? { label: 'Giveaway hier starten', icon: '🎉', fn: function () { openGiveaway(s, c.id); } } : null,
+    !voice && perm(s, 'giveaway') && s.bots && s.bots.giveaway ? { label: 'Giveaway hier starten', icon: '🎉', fn: function () { openGiveaway(s, c.id); } } : null,
     man ? '-' : null,
     man ? { label: 'Kanal bearbeiten', icon: '✏️', fn: function () { openRenameChannel(s, c); } } : null,
     man ? { label: 'Textkanal erstellen', icon: '#', fn: function () { openCreateChannel(s, 'text'); } } : null,
@@ -1186,11 +1287,12 @@ function serverMenu(e, s) {
   ctxMenu(e, [
     { label: 'Als gelesen markieren', icon: '✓', fn: function () { s.channels.forEach(function (c) { S.unread[c.id] = 0; }); renderRail(); renderSide(); } },
     '-',
-    { label: 'Leute hinzufügen', icon: '👋', fn: function () { selectServer(s.id); openServerInfo(); } },
-    canManage(s) ? { label: 'Server-Einstellungen', icon: '⚙️', fn: function () { selectServer(s.id); openServerInfo(); } } : null,
-    canManage(s) ? { label: 'Kanal erstellen', icon: '＋', fn: function () { selectServer(s.id); openCreateChannel(s, 'text'); } } : null,
-    canManage(s) ? { label: 'Bots einstellen', icon: '🤖', fn: function () { openBots(s); } } : null,
-    canManage(s) && s.bots && s.bots.giveaway ? { label: 'Giveaway starten', icon: '🎉', fn: function () { selectServer(s.id); openGiveaway(s, S.view.channel); } } : null,
+    { label: 'Leute einladen', icon: '👋', fn: function () { selectServer(s.id); openServerSettings(s, 'invite'); } },
+    canManage(s) ? { label: 'Server-Einstellungen', icon: '⚙️', fn: function () { selectServer(s.id); openServerSettings(s); } } : null,
+    perm(s, 'manageRoles') ? { label: 'Rollen', icon: '🏷️', fn: function () { selectServer(s.id); openServerSettings(s, 'roles'); } } : null,
+    perm(s, 'manageChannels') ? { label: 'Kanal erstellen', icon: '＋', fn: function () { selectServer(s.id); openCreateChannel(s, 'text'); } } : null,
+    perm(s, 'manageServer') ? { label: 'Bots einstellen', icon: '🤖', fn: function () { openServerSettings(s, 'bots'); } } : null,
+    perm(s, 'giveaway') && s.bots && s.bots.giveaway ? { label: 'Giveaway starten', icon: '🎉', fn: function () { selectServer(s.id); openGiveaway(s, S.view.channel); } } : null,
     { label: 'Einladungscode kopieren', icon: '🔗', fn: function () { copyText(s.invite); } },
     '-',
     owner ? { label: 'Server löschen', icon: '🗑️', danger: true, fn: function () {
@@ -1210,7 +1312,8 @@ function memberMenu(e, u) {
     !me && !isFriend(u.id) && S.fr.outgoing.indexOf(u.id) < 0 ? { label: 'Freund hinzufügen', icon: '➕', fn: function () { sendReq(u.id); } } : null,
     !me && isFriend(u.id) ? { label: 'Freund entfernen', icon: '➖', fn: function () { removeFriend(u); } } : null,
     '-',
-    !me && s && canManage(s) && s.ownerId !== u.id && u.role !== 'owner' ? { label: 'Vom Server kicken', icon: '👢', danger: true, fn: function () {
+    !me && s && perm(s, 'manageRoles') ? { label: 'Rollen …', icon: '🏷️', fn: function () { openServerSettings(s, 'members'); } } : null,
+    !me && s && perm(s, 'kick') && s.ownerId !== u.id && u.role !== 'owner' ? { label: 'Vom Server kicken', icon: '👢', danger: true, fn: function () {
       confirmBox(u.name + ' aus „' + s.name + '“ kicken?', 'Kicken', async function () { var d = await api('/api/servers/kick', { serverId: s.id, userId: u.id }); S.servers[d.server.id] = d.server; renderAll(); });
     } } : null,
     !me && isMod() && u.role !== 'owner' && (S.me.role === 'owner' || u.role === 'user') ? { label: u.banned ? 'Entbannen' : 'Bannen', icon: '⛔', danger: !u.banned, fn: function () {
@@ -1220,9 +1323,10 @@ function memberMenu(e, u) {
 }
 function messageMenu(e, m) {
   var mine = m.userId === S.me.id, s = curServer(), x = e.clientX, y = e.clientY;
-  var canDel = mine || isMod() || (s && s.ownerId === S.me.id);
+  var canDel = mine || isMod() || (s && perm(s, 'manageMessages'));
   ctxMenu(e, [
     { label: 'Reaktion hinzufügen', icon: '😀', fn: function () { emojiPicker({ getBoundingClientRect: function () { return { left: x, right: x, top: y, bottom: y }; } }, function (em) { react(m, em); }); } },
+    { label: 'Antworten', icon: '↩️', fn: function () { startReply(m); } },
     mine && m.text ? { label: 'Nachricht bearbeiten', icon: '✏️', fn: function () { startEdit(m); } } : null,
     m.text ? { label: 'Text kopieren', icon: '📋', fn: function () { copyText(m.text); } } : null,
     !mine ? { label: 'Erwähnen', icon: '@', fn: function () { var u = S.users[m.userId]; if (u) insertAtCursor($('input'), '@' + u.name + ' '); } } : null,
@@ -1246,7 +1350,7 @@ async function gwAct(action, g) {
   catch (e) { toast(e.message, true); }
 }
 function gwCard(g) {
-  var s = S.servers[g.serverId], man = s && canManage(s), joined = g.entrants.indexOf(S.me.id) >= 0;
+  var s = S.servers[g.serverId], man = s && perm(s, 'giveaway'), joined = g.entrants.indexOf(S.me.id) >= 0;
   var winners = (g.winnerIds || []).map(function (id) { return '@' + nameOf(id); }).join(', ');
   var won = (g.winnerIds || []).indexOf(S.me.id) >= 0;
   return el('div', { class: 'gw' + (g.ended ? ' ended' : '') + (won ? ' won' : '') },
@@ -1263,7 +1367,7 @@ function gwCard(g) {
       man && g.ended ? el('button', { class: 'btn small', onclick: function () { gwAct('reroll', g); } }, '🔄 Neu auslosen') : null));
 }
 function chanSelect(s, val, emptyLabel) {
-  var sel = el('select', { class: 'sel' });
+  var sel = el('select', { class: 'fsel' });
   if (emptyLabel) sel.append(el('option', { value: '' }, emptyLabel));
   s.channels.filter(function (c) { return c.type !== 'voice'; }).forEach(function (c) { var o = el('option', { value: c.id }, '# ' + c.name); if (c.id === val) o.selected = true; sel.append(o); });
   return sel;
@@ -1271,7 +1375,7 @@ function chanSelect(s, val, emptyLabel) {
 function openGiveaway(s, ch) {
   if (!hasTextCh(s, ch)) ch = (s.channels.filter(function (c) { return c.type !== 'voice'; })[0] || {}).id;
   var prize = el('input', { placeholder: 'z. B. 1000 Robux, Nitro, Skin …', maxlength: 100 });
-  var dur = el('select', { class: 'sel' }, [[1, '1 Minute'], [5, '5 Minuten'], [10, '10 Minuten'], [30, '30 Minuten'], [60, '1 Stunde'], [360, '6 Stunden'], [1440, '1 Tag'], [4320, '3 Tage'], [10080, '1 Woche']]
+  var dur = el('select', { class: 'fsel' }, [[1, '1 Minute'], [5, '5 Minuten'], [10, '10 Minuten'], [30, '30 Minuten'], [60, '1 Stunde'], [360, '6 Stunden'], [1440, '1 Tag'], [4320, '3 Tage'], [10080, '1 Woche']]
     .map(function (d) { var o = el('option', { value: d[0] }, d[1]); if (d[0] === 60) o.selected = true; return o; }));
   var cnt = el('input', { type: 'number', min: 1, max: 20, value: 1 });
   var chs = chanSelect(s, ch), err = el('div', { class: 'err' });
@@ -1295,7 +1399,7 @@ function toggleRow(label, desc, val, onch) {
   cb.onchange = function () { onch(cb.checked); };
   return el('label', { class: 'trow' }, el('div', {}, el('b', {}, label), desc ? el('small', {}, desc) : null), el('span', { class: 'switch' }, cb, el('i')));
 }
-function openBots(s) {
+function openBotsOld(s) {
   var cfg = Object.assign({}, s.bots || {}), err = el('div', { class: 'err' });
   var body = el('div', {});
   function draw() {
@@ -1364,6 +1468,332 @@ function updateSlash() {
   });
   box.classList.remove('hidden');
 }
+
+
+// ---------- Antworten ----------
+function startReply(m) {
+  if (!S.view.channel || isVoiceCh(S.view.channel) || S.view.channel === 'friends') return;
+  S.replyTo = m;
+  var u = userOf(m.userId), b = $('replybar');
+  b.textContent = '';
+  b.append(el('span', {}, '↩️ Antwort an ', el('b', { style: 'color:' + nameColor(curServer(), u) }, u.name)), el('button', { class: 'x', title: 'Abbrechen', onclick: cancelReply }, '✕'));
+  b.classList.remove('hidden'); $('input').focus();
+}
+function cancelReply() { S.replyTo = null; var b = $('replybar'); if (b) { b.classList.add('hidden'); b.textContent = ''; } }
+
+// ---------- Server-Einstellungen (wie Discord) ----------
+var SS = null;
+var ROLE_COLORS = ['#2ee59d', '#1abc9c', '#3498db', '#6d5dfc', '#9b59b6', '#e14bd6', '#e91e63', '#ff4d6d', '#e67e22', '#ffc857', '#f1c40f', '#95a5a6'];
+var PERMS = [
+  ['admin', '👑 Administrator', 'Darf ALLES auf dem Server – nur an Leute geben, denen du voll vertraust!'],
+  ['manageServer', '⚙️ Server verwalten', 'Servername, Server-Bild und Bots ändern'],
+  ['manageChannels', '# Kanäle verwalten', 'Kanäle erstellen, umbenennen und löschen'],
+  ['manageRoles', '🏷️ Rollen verwalten', 'Rollen erstellen, ändern und vergeben'],
+  ['manageMessages', '🧹 Nachrichten verwalten', 'Nachrichten von anderen löschen (Auto-Mod blockiert sie nicht)'],
+  ['kick', '👢 Mitglieder kicken', 'Leute vom Server werfen (sie können wieder beitreten)'],
+  ['ban', '⛔ Mitglieder bannen', 'Leute vom Server aussperren'],
+  ['giveaway', '🎉 Giveaways starten', 'Gewinnspiele mit dem Giveaway-Bot starten und beenden']
+];
+function openServerSideMenu(s, e) {
+  var r = $('sideHead').getBoundingClientRect();
+  ctxMenu({ clientX: r.left + 8, clientY: r.bottom + 4, preventDefault: function () {}, stopPropagation: function () {} }, [
+    { label: 'Leute einladen', icon: '👋', fn: function () { openServerSettings(s, 'invite'); } },
+    canManage(s) ? { label: 'Server-Einstellungen', icon: '⚙️', fn: function () { openServerSettings(s); } } : null,
+    perm(s, 'manageRoles') ? { label: 'Rollen', icon: '🏷️', fn: function () { openServerSettings(s, 'roles'); } } : null,
+    perm(s, 'manageChannels') ? { label: 'Kanal erstellen', icon: '＋', fn: function () { openCreateChannel(s, 'text'); } } : null,
+    perm(s, 'manageServer') ? { label: 'Bots', icon: '🤖', fn: function () { openServerSettings(s, 'bots'); } } : null,
+    perm(s, 'giveaway') && s.bots && s.bots.giveaway ? { label: 'Giveaway starten', icon: '🎉', fn: function () { openGiveaway(s, S.view.channel); } } : null,
+    '-',
+    s.ownerId === S.me.id || S.me.role === 'owner' ? { label: 'Server löschen', icon: '🗑️', danger: true, fn: function () {
+      confirmBox('Den Server „' + s.name + '“ mit ALLEN Nachrichten löschen?', 'Server löschen', async function () { await api('/api/servers/delete', { serverId: s.id }); delete S.servers[s.id]; selectServer('dm'); });
+    } } : { label: 'Server verlassen', icon: '🚪', danger: true, fn: function () {
+      confirmBox('Den Server „' + s.name + '“ verlassen?', 'Verlassen', async function () { await api('/api/servers/leave', { serverId: s.id }); delete S.servers[s.id]; selectServer('dm'); });
+    } }
+  ]);
+}
+function ssPages(s) {
+  return [
+    ['h', s.name],
+    perm(s, 'manageServer') ? ['overview', '🏠', 'Übersicht'] : null,
+    perm(s, 'manageRoles') ? ['roles', '🏷️', 'Rollen'] : null,
+    perm(s, 'manageChannels') ? ['channels', '#', 'Kanäle'] : null,
+    ['h', 'Bots'],
+    perm(s, 'manageServer') ? ['bots', '🤖', 'Alle Bots'] : null,
+    perm(s, 'manageServer') || perm(s, 'giveaway') ? ['giveaway', '🎉', 'Giveaway-Bot'] : null,
+    perm(s, 'manageServer') ? ['galaxy', '🌌', 'Galaxy-Bot'] : null,
+    ['h', 'Mitglieder'],
+    ['members', '👥', 'Mitglieder'],
+    perm(s, 'ban') ? ['bans', '⛔', 'Bans'] : null,
+    ['invite', '👋', 'Leute einladen']
+  ].filter(Boolean).filter(function (x, i, a) { return x[0] !== 'h' || (a[i + 1] && a[i + 1][0] !== 'h'); });
+}
+function openServerSettings(s, page) {
+  if (!s) return;
+  closeModal();
+  SS = { sid: s.id, page: page || null, role: null, dirty: false };
+  renderSS();
+}
+function closeSS() {
+  if (SS && SS.dirty && !confirm('Du hast ungespeicherte Änderungen. Trotzdem schließen?')) return;
+  SS = null; var o = $('ssettings'); o.classList.add('hidden'); o.textContent = '';
+}
+function ssGo(page) {
+  if (SS.dirty && !confirm('Du hast ungespeicherte Änderungen. Trotzdem wechseln?')) return;
+  SS.page = page; SS.dirty = false; renderSS();
+}
+function renderSS() {
+  var o = $('ssettings'); if (!SS) return;
+  var s = S.servers[SS.sid]; if (!s) return closeSS();
+  var pages = ssPages(s), ok = pages.filter(function (p) { return p[0] !== 'h'; });
+  if (!ok.some(function (p) { return p[0] === SS.page; })) SS.page = ok[0][0];
+  var nav = el('div', { class: 'ss-nav' }, el('div', { class: 'ss-nav-in' }, pages.map(function (p) {
+    if (p[0] === 'h') return el('div', { class: 'ss-h' }, p[1]);
+    return el('button', { class: 'ss-item' + (SS.page === p[0] ? ' on' : ''), onclick: function () { ssGo(p[0]); } }, el('span', { class: 'ss-ic' }, p[1]), p[2]);
+  })));
+  var content = el('div', { class: 'ss-content' });
+  SS_PAGES[SS.page](content, s);
+  o.textContent = '';
+  o.append(el('div', { class: 'ss-wrap' }, nav, el('div', { class: 'ss-main' }, content,
+    el('div', { class: 'ss-closebox' }, el('button', { class: 'ss-close', title: 'Schließen (Esc)', onclick: closeSS }, '✕'), el('small', {}, 'ESC')))));
+  o.classList.remove('hidden');
+}
+function ssTitle(t, d) { return el('div', { class: 'ss-title' }, el('h2', {}, t), d ? el('p', {}, d) : null); }
+function cropToDataURL(file, size) {
+  return new Promise(function (res, rej) {
+    if (!file || !/^image\//.test(file.type)) return rej(new Error('Nur Bilder!'));
+    var img = new Image(), url = URL.createObjectURL(file);
+    img.onload = function () {
+      var c = document.createElement('canvas'); c.width = size; c.height = size;
+      var m = Math.min(img.width, img.height);
+      c.getContext('2d').drawImage(img, (img.width - m) / 2, (img.height - m) / 2, m, m, 0, 0, size, size);
+      URL.revokeObjectURL(url);
+      var d = c.toDataURL('image/webp', 0.9); if (d.indexOf('data:image/webp') !== 0) d = c.toDataURL('image/png');
+      res(d);
+    };
+    img.onerror = function () { rej(new Error('Bild konnte nicht geladen werden')); };
+    img.src = url;
+  });
+}
+function upd(d) { S.servers[d.server.id] = d.server; renderAll(); }
+async function saveBots(s, patch, rerender) {
+  var cfg = Object.assign({}, s.bots || {}, patch);
+  try { var d = await api('/api/bots/config', { serverId: s.id, cfg: cfg }); upd(d); toast('✓ Gespeichert'); if (rerender) renderSS(); }
+  catch (e) { toast(e.message, true); renderSS(); }
+}
+var SS_PAGES = {
+  overview: function (c, s) {
+    var fileIn = el('input', { type: 'file', accept: 'image/*', style: 'display:none' });
+    fileIn.onchange = async function () { try { var d = await api('/api/servers/icon', { serverId: s.id, image: await cropToDataURL(fileIn.files[0], 256) }); upd(d); renderSS(); toast('✓ Server-Bild gespeichert'); } catch (e) { toast(e.message, true); } };
+    var nameIn = el('input', { maxlength: 40 }); nameIn.value = s.name;
+    c.append(ssTitle('Server-Übersicht'),
+      el('div', { class: 'ss-card ss-row' },
+        el('div', { class: 'ss-icon' }, s.icon ? el('img', { src: s.icon, alt: '' }) : initials(s.name)),
+        el('div', { style: 'flex:1;min-width:200px' },
+          el('b', { class: 'ss-lbl' }, 'Server-Bild'),
+          el('p', { class: 'small muted' }, 'Am besten ein quadratisches Bild. Es wird links in der Server-Leiste angezeigt.'),
+          el('div', { class: 'row' }, fileIn, el('button', { class: 'btn primary', onclick: function () { fileIn.click(); } }, '🖼️ Bild hochladen'),
+            s.icon ? el('button', { class: 'btn', onclick: async function () { upd(await api('/api/servers/icon', { serverId: s.id, image: '' })); renderSS(); } }, 'Entfernen') : null))),
+      el('div', { class: 'ss-card' }, el('b', { class: 'ss-lbl' }, 'Servername'),
+        el('div', { class: 'row' }, nameIn, el('button', { class: 'btn primary', onclick: async function () { try { upd(await api('/api/servers/rename', { serverId: s.id, name: nameIn.value })); toast('✓ Gespeichert'); renderSS(); } catch (e) { toast(e.message, true); } } }, 'Speichern'))),
+      el('div', { class: 'ss-card' }, el('b', { class: 'ss-lbl' }, 'Infos'),
+        el('p', { class: 'small' }, '👑 Besitzer: ' + nameOf(s.ownerId) + ' · 👥 ' + s.members.length + ' Mitglieder · 💬 ' + s.channels.length + ' Kanäle · 🏷️ ' + (s.roles || []).length + ' Rollen')),
+      s.ownerId === S.me.id || S.me.role === 'owner' ? el('div', { class: 'ss-card danger' }, el('b', { class: 'ss-lbl' }, '⚠️ Gefahrenzone'),
+        el('p', { class: 'small' }, 'Server löschen – alle Kanäle und Nachrichten sind dann für immer weg.'),
+        el('button', { class: 'btn red', style: 'margin-top:8px', onclick: function () {
+          confirmBox('Den Server „' + s.name + '“ mit ALLEN Nachrichten löschen?', 'Server löschen', async function () { await api('/api/servers/delete', { serverId: s.id }); delete S.servers[s.id]; SS = null; closeSS(); selectServer('dm'); });
+        } }, '🗑️ Server löschen')) : null);
+  },
+  roles: function (c, s) {
+    var roles = s.roles || [];
+    var count = function (r) { return s.members.filter(function (id) { return ((s.memberRoles || {})[id] || []).indexOf(r.id) >= 0; }).length; };
+    c.append(ssTitle('Rollen', 'Rollen geben Leuten eine Farbe und Rechte. Die Rolle ganz oben ist die wichtigste.'));
+    var list = el('div', { class: 'role-list' },
+      el('button', { class: 'btn primary', style: 'width:100%;margin-bottom:8px', onclick: async function () {
+        try { var d = await api('/api/roles/save', { serverId: s.id, cfg: { name: 'neue Rolle', color: ROLE_COLORS[randIdx()], perms: [], hoist: false } }); upd(d); SS.role = d.server.roles[0].id; SS.dirty = false; renderSS(); }
+        catch (e) { toast(e.message, true); }
+      } }, '＋ Rolle erstellen'),
+      roles.length ? roles.map(function (r, i) {
+        return el('div', { class: 'role-row' + (SS.role === r.id ? ' on' : ''), onclick: function () { if (SS.dirty && !confirm('Ungespeicherte Änderungen verwerfen?')) return; SS.role = r.id; SS.dirty = false; renderSS(); } },
+          el('i', { class: 'rdot', style: 'background:' + (r.color || '#8e9bc2') }), el('span', { class: 'rn' }, r.name), el('span', { class: 'muted small' }, '👤 ' + count(r)),
+          el('span', { class: 'rmove' },
+            i > 0 ? el('button', { title: 'Nach oben', onclick: async function (e) { e.stopPropagation(); upd(await api('/api/roles/move', { serverId: s.id, id: r.id, count: -1 })); renderSS(); } }, '▲') : null,
+            i < roles.length - 1 ? el('button', { title: 'Nach unten', onclick: async function (e) { e.stopPropagation(); upd(await api('/api/roles/move', { serverId: s.id, id: r.id, count: 1 })); renderSS(); } }, '▼') : null));
+      }) : el('p', { class: 'muted small pad' }, 'Noch keine Rollen. Erstell eine, z. B. „Moderator“ oder „VIP“!'));
+    var ed = el('div', { class: 'role-ed' });
+    var r0 = roles.filter(function (r) { return r.id === SS.role; })[0];
+    if (!r0) ed.append(el('div', { class: 'muted pad', style: 'text-align:center;padding-top:60px' }, '👈 Wähl links eine Rolle aus oder erstell eine neue.'));
+    else {
+      var r = SS.edit && SS.edit.id === r0.id ? SS.edit : (SS.edit = JSON.parse(JSON.stringify(r0)));
+      var dirty = function () { SS.dirty = true; bar.classList.remove('hidden'); };
+      var nm = el('input', { maxlength: 30 }); nm.value = r.name; nm.oninput = function () { r.name = nm.value; dirty(); };
+      var sw = el('div', { class: 'swatches' });
+      var drawSw = function () {
+        sw.textContent = '';
+        ROLE_COLORS.forEach(function (col) { sw.append(el('button', { class: 'sw' + (r.color === col ? ' sel' : ''), style: 'background:' + col, onclick: function () { r.color = col; drawSw(); dirty(); } })); });
+        var cp = el('input', { type: 'color', class: 'colorpick', value: r.color || '#8e9bc2' }); cp.oninput = function () { r.color = cp.value; dirty(); }; sw.append(cp);
+      };
+      drawSw();
+      var members = s.members.map(function (id) { return S.users[id]; }).filter(function (u) { return u && ((s.memberRoles || {})[u.id] || []).indexOf(r.id) >= 0; });
+      var addSel = el('select', { class: 'fsel' }, el('option', { value: '' }, '＋ Mitglied hinzufügen …'),
+        s.members.map(function (id) { return S.users[id]; }).filter(function (u) { return u && members.indexOf(u) < 0; }).map(function (u) { return el('option', { value: u.id }, u.name); }));
+      addSel.onchange = async function () { if (!addSel.value) return; try { upd(await api('/api/roles/assign', { serverId: s.id, id: r.id, userId: addSel.value })); renderSS(); } catch (e) { toast(e.message, true); } };
+      var bar = el('div', { class: 'savebar' + (SS.dirty ? '' : ' hidden') }, el('span', {}, 'Achtung – du hast ungespeicherte Änderungen!'),
+        el('button', { class: 'btn small', onclick: function () { SS.edit = null; SS.dirty = false; renderSS(); } }, 'Zurücksetzen'),
+        el('button', { class: 'btn green small', onclick: async function () {
+          try { var d = await api('/api/roles/save', { serverId: s.id, cfg: r }); SS.dirty = false; SS.edit = null; upd(d); renderSS(); toast('✓ Rolle gespeichert'); } catch (e) { toast(e.message, true); }
+        } }, 'Änderungen speichern'));
+      ed.append(
+        el('div', { class: 'ss-card' }, el('b', { class: 'ss-lbl' }, 'Rollenname'), nm,
+          el('b', { class: 'ss-lbl', style: 'margin-top:14px;display:block' }, 'Farbe'), sw,
+          toggleRow('Getrennt in der Mitgliederliste anzeigen', 'Leute mit dieser Rolle bekommen eine eigene Gruppe', r.hoist, function (v) { r.hoist = v; dirty(); })),
+        el('div', { class: 'ss-card' }, el('b', { class: 'ss-lbl' }, 'Rechte'),
+          PERMS.map(function (p) { return toggleRow(p[1], p[2], r.perms.indexOf(p[0]) >= 0, function (v) { r.perms = r.perms.filter(function (x) { return x !== p[0]; }); if (v) r.perms.push(p[0]); dirty(); }); })),
+        el('div', { class: 'ss-card' }, el('b', { class: 'ss-lbl' }, 'Mitglieder mit dieser Rolle (' + members.length + ')'),
+          el('div', { class: 'rchips', style: 'margin:8px 0' }, members.map(function (u) {
+            return el('span', { class: 'rchip' }, avatar(u, 18), u.name, el('button', { title: 'Rolle wegnehmen', onclick: async function () { try { upd(await api('/api/roles/assign', { serverId: s.id, id: r.id, userId: u.id, banned: true })); renderSS(); } catch (e) { toast(e.message, true); } } }, '✕'));
+          })), addSel),
+        el('div', { class: 'ss-card danger' }, el('button', { class: 'btn red', onclick: function () {
+          confirmBox('Die Rolle „' + r0.name + '“ löschen?', 'Löschen', async function () { upd(await api('/api/roles/delete', { serverId: s.id, id: r0.id })); SS.role = null; SS.edit = null; SS.dirty = false; renderSS(); }, function () { closeModal(); });
+        } }, '🗑️ Rolle löschen')),
+        bar);
+    }
+    c.append(el('div', { class: 'role-grid' }, list, ed));
+  },
+  channels: function (c, s) {
+    var row = function (ch) {
+      return el('div', { class: 'ss-li' }, el('span', { class: 'ss-ic' }, ch.type === 'voice' ? '🔊' : '#'), el('span', { style: 'flex:1' }, ch.name),
+        el('button', { class: 'btn small', onclick: function () { openRenameChannel(s, ch); } }, '✏️ Umbenennen'),
+        el('button', { class: 'btn red small', onclick: function () {
+          confirmBox('Kanal „' + ch.name + '“ löschen?', 'Löschen', async function () { upd(await api('/api/channels/delete', { serverId: s.id, channelId: ch.id })); renderSS(); });
+        } }, '🗑️'));
+    };
+    c.append(ssTitle('Kanäle', 'Tipp: Du kannst auch links in der Kanalliste mit Rechtsklick Kanäle bearbeiten.'),
+      el('div', { class: 'ss-card' }, el('div', { class: 'ss-cardh' }, el('b', {}, '# Textkanäle'), el('button', { class: 'btn green small', onclick: function () { openCreateChannel(s, 'text'); } }, '＋ Erstellen')),
+        s.channels.filter(function (x) { return x.type !== 'voice'; }).map(row)),
+      el('div', { class: 'ss-card' }, el('div', { class: 'ss-cardh' }, el('b', {}, '🔊 Sprachkanäle'), el('button', { class: 'btn green small', onclick: function () { openCreateChannel(s, 'voice'); } }, '＋ Erstellen')),
+        s.channels.filter(function (x) { return x.type === 'voice'; }).map(row)));
+  },
+  members: function (c, s) {
+    var q = el('input', { placeholder: 'Mitglied suchen …' }), list = el('div', {});
+    var draw = function () {
+      list.textContent = '';
+      var f = q.value.toLowerCase();
+      s.members.map(function (id) { return S.users[id]; }).filter(function (u) { return u && u.name.toLowerCase().indexOf(f) >= 0; }).sort(cmpUser).forEach(function (u) {
+        var rs = rolesOf(s, u.id), me = u.id === S.me.id;
+        var add = perm(s, 'manageRoles') ? el('select', { class: 'fsel mini' }, el('option', { value: '' }, '＋ Rolle'),
+          (s.roles || []).filter(function (r) { return rs.indexOf(r) < 0; }).map(function (r) { return el('option', { value: r.id }, r.name); })) : null;
+        if (add) add.onchange = async function () { if (!add.value) return; try { upd(await api('/api/roles/assign', { serverId: s.id, id: add.value, userId: u.id })); renderSS(); } catch (e) { toast(e.message, true); } };
+        list.append(el('div', { class: 'ss-li mem-li' }, avatar(u, 36, function () { openProfile(u.id); }, true),
+          el('div', { style: 'flex:1;min-width:150px' },
+            el('div', { class: 'fname', style: 'color:' + nameColor(s, u) }, u.name, u.id === s.ownerId ? ' 👑' : '', roleBadge(u)),
+            el('div', { class: 'rchips' }, rs.map(function (r) {
+              return el('span', { class: 'rchip' }, el('i', { class: 'rdot', style: 'background:' + (r.color || '#8e9bc2') }), r.name,
+                perm(s, 'manageRoles') ? el('button', { title: 'Rolle wegnehmen', onclick: async function () { try { upd(await api('/api/roles/assign', { serverId: s.id, id: r.id, userId: u.id, banned: true })); renderSS(); } catch (e) { toast(e.message, true); } } }, '✕') : null);
+            }), add)),
+          !me && u.id !== s.ownerId && perm(s, 'kick') ? el('button', { class: 'btn small', onclick: function () {
+            confirmBox(u.name + ' vom Server kicken?', 'Kicken', async function () { upd(await api('/api/servers/kick', { serverId: s.id, userId: u.id })); renderSS(); });
+          } }, '👢 Kicken') : null,
+          !me && u.id !== s.ownerId && perm(s, 'ban') ? el('button', { class: 'btn red small', onclick: function () {
+            confirmBox(u.name + ' vom Server bannen? Die Person kann dann nicht mehr beitreten.', 'Bannen', async function () { upd(await api('/api/servers/ban', { serverId: s.id, userId: u.id, banned: true })); renderSS(); });
+          } }, '⛔ Bannen') : null));
+      });
+    };
+    q.oninput = draw; draw();
+    c.append(ssTitle('Mitglieder (' + s.members.length + ')', 'Gib Leuten Rollen, kicke oder banne sie.'), q, el('div', { style: 'margin-top:10px' }, list));
+  },
+  bans: function (c, s) {
+    var b = (s.bans || []).map(function (id) { return S.users[id]; }).filter(Boolean);
+    c.append(ssTitle('Bans (' + b.length + ')', 'Gebannte Leute können dem Server nicht mehr beitreten. Bannen geht in der Mitgliederliste.'),
+      b.length ? b.map(function (u) {
+        return el('div', { class: 'ss-li' }, avatar(u, 32), el('span', { style: 'flex:1' }, u.name),
+          el('button', { class: 'btn green small', onclick: async function () { upd(await api('/api/servers/ban', { serverId: s.id, userId: u.id, banned: false })); renderSS(); toast(u.name + ' ist entbannt'); } }, 'Entbannen'));
+      }) : el('div', { class: 'ss-card', style: 'text-align:center' }, el('div', { style: 'font-size:40px' }, '😇'), el('p', {}, 'Niemand ist gebannt.')));
+  },
+  invite: function (c, s) {
+    var inp2 = el('input', { placeholder: 'Benutzername eingeben, z. B. Maxi', maxlength: 20 }), msg = el('div', { class: 'fmsg' });
+    var add = async function (body) {
+      try { var d = await api('/api/servers/add', Object.assign({ serverId: s.id }, body)); upd(d); msg.className = 'fmsg ok'; msg.textContent = '✅ ' + d.added + ' ist jetzt auf dem Server!'; inp2.value = ''; }
+      catch (e) { msg.className = 'fmsg bad'; msg.textContent = e.message; }
+    };
+    inp2.onkeydown = function (e) { if (e.key === 'Enter' && inp2.value.trim()) add({ name: inp2.value.trim() }); };
+    var fr = S.fr.friends.map(function (id) { return S.users[id]; }).filter(function (u) { return u && !u.banned && s.members.indexOf(u.id) < 0; });
+    c.append(ssTitle('Leute einladen'),
+      el('div', { class: 'ss-card' }, el('b', { class: 'ss-lbl' }, '👋 Per Name hinzufügen'),
+        el('div', { class: 'addbox' }, inp2, el('button', { class: 'btn green', onclick: function () { if (inp2.value.trim()) add({ name: inp2.value.trim() }); } }, 'Hinzufügen')), msg),
+      fr.length ? el('div', { class: 'ss-card' }, el('b', { class: 'ss-lbl' }, '👥 Deine Freunde'),
+        fr.map(function (u) { return el('div', { class: 'ss-li' }, avatar(u, 32, null, true), el('span', { style: 'flex:1' }, u.name), el('button', { class: 'btn green small', onclick: function () { add({ userId: u.id }); } }, '＋ Hinzufügen')); })) : null,
+      el('div', { class: 'ss-card' }, el('b', { class: 'ss-lbl' }, '🔑 Einladungscode'),
+        el('p', { class: 'small muted' }, 'Freunde klicken links auf ＋ → „Beitreten“ und geben den Code ein.'),
+        el('div', { class: 'row' }, el('div', { class: 'code' }, s.invite), el('button', { class: 'btn primary', onclick: function () { copy(s.invite); } }, 'Kopieren'))),
+      linkBox());
+  },
+  bots: function (c, s) {
+    var b = s.bots || {};
+    var card = function (icon, name, desc, key, page) {
+      return el('div', { class: 'botcard' + (b[key] ? ' on' : '') },
+        el('div', { class: 'bc-head' }, el('div', { class: 'bc-av' }, icon), el('div', { class: 'bc-t' }, el('b', {}, name), el('small', {}, desc)),
+          toggleRow('', '', b[key], function (v) { var p = {}; p[key] = v; saveBots(s, p, true); })),
+        el('div', { class: 'bc-foot' }, el('span', { class: 'small ' + (b[key] ? 'oktxt' : 'muted') }, b[key] ? '● Aktiv' : '○ Aus'),
+          el('button', { class: 'btn small', onclick: function () { ssGo(page); } }, 'Einstellungen →')));
+    };
+    c.append(ssTitle('Bots', 'Schalte Bots für diesen Server ein. Jeder Bot hat links seine eigene Seite mit Einstellungen.'),
+      card('🎉', 'Giveaway-Bot', 'Gewinnspiele mit Countdown und automatischer Auslosung', 'giveaway', 'giveaway'),
+      card('🌌', 'Galaxy-Bot', 'Willkommen, Level-System, Auto-Mod und lustige Befehle', 'galaxy', 'galaxy'));
+  },
+  giveaway: function (c, s) {
+    var b = s.bots || {};
+    var gws = Object.values(S.gws || {}).filter(function (g) { return g.serverId === s.id; }).sort(function (a, z) { return z.endsAt - a.endsAt; });
+    c.append(ssTitle('🎉 Giveaway-Bot', 'Gewinnspiele für deinen Server.'),
+      perm(s, 'manageServer') ? el('div', { class: 'ss-card' }, toggleRow('Giveaway-Bot aktiv', 'Schalte ihn ein, damit man Giveaways starten kann', b.giveaway, function (v) { saveBots(s, { giveaway: v }, true); })) : null,
+      b.giveaway ? el('div', { class: 'ss-card' }, el('b', { class: 'ss-lbl' }, 'So startest du ein Giveaway'),
+        el('div', { class: 'cmds' }, el('div', {}, '• Hier unten auf „Giveaway starten“'), el('div', {}, '• 🎉 oben im Chat'), el('div', {}, '• Rechtsklick auf einen Kanal'), el('div', {}, '• ', el('code', {}, '/giveaway'), ' in den Chat schreiben')),
+        perm(s, 'giveaway') ? el('button', { class: 'btn primary', style: 'margin-top:12px', onclick: function () { openGiveaway(s, S.view.channel); } }, '🎉 Giveaway starten') : null) : null,
+      b.giveaway ? el('div', { class: 'ss-card' }, el('b', { class: 'ss-lbl' }, 'Giveaways auf diesem Server (' + gws.length + ')'),
+        gws.length ? gws.map(function (g) {
+          return el('div', { class: 'ss-li' }, el('span', { class: 'ss-ic' }, g.ended ? '🏁' : '⏳'),
+            el('div', { style: 'flex:1;min-width:140px' }, el('b', {}, g.prize), el('div', { class: 'small muted' },
+              g.ended ? 'Beendet · Gewinner: ' + ((g.winnerIds || []).map(nameOf).join(', ') || 'niemand') : 'Läuft noch · ' + g.entrants.length + ' Teilnehmer')),
+            perm(s, 'giveaway') && !g.ended ? el('button', { class: 'btn small', onclick: async function () { await gwAct('end', g); renderSS(); } }, '⏹ Beenden') : null,
+            perm(s, 'giveaway') && g.ended ? el('button', { class: 'btn small', onclick: async function () { await gwAct('reroll', g); renderSS(); } }, '🔄 Neu auslosen') : null);
+        }) : el('p', { class: 'muted small' }, 'Noch keine Giveaways.')) : null);
+  },
+  galaxy: function (c, s) {
+    var b = s.bots || {};
+    var sect = function (icon, title, desc, key, inner) {
+      return el('div', { class: 'ss-card sect' + (b[key] ? ' on' : '') },
+        el('div', { class: 'sect-h' }, el('span', { class: 'sect-ic' }, icon), el('div', { style: 'flex:1' }, el('b', {}, title), el('small', {}, desc)),
+          el('span', { class: 'switch' }, (function () { var cb = el('input', { type: 'checkbox' }); cb.checked = !!b[key]; cb.onchange = function () { var p = {}; p[key] = cb.checked; saveBots(s, p, true); }; return cb; })(), el('i'))),
+        b[key] && inner ? el('div', { class: 'sect-b' }, inner()) : null);
+    };
+    var textBox = function (key, ph) {
+      var t = el('textarea', { rows: 2, maxlength: 300, placeholder: ph }); t.value = b[key] || '';
+      t.onchange = function () { var p = {}; p[key] = t.value; saveBots(s, p, false); };
+      return t;
+    };
+    var chSel = function (key, empty) { var x = chanSelect(s, b[key], empty); x.onchange = function () { var p = {}; p[key] = x.value; saveBots(s, p, false); }; return x; };
+    c.append(ssTitle('🌌 Galaxy-Bot', 'Jede Funktion hat ihren eigenen Schalter. Alles wird sofort gespeichert.'),
+      el('div', { class: 'ss-card' }, toggleRow('Galaxy-Bot aktiv', b.galaxy ? 'Der Bot ist an – stell unten ein, was er machen soll' : 'Schalte ihn ein, um die Funktionen zu sehen', b.galaxy, function (v) { saveBots(s, { galaxy: v }, true); })));
+    if (!b.galaxy) return;
+    c.append(
+      sect('👋', 'Willkommens-Nachricht', 'Begrüßt neue Mitglieder', 'welcomeOn', function () {
+        return el('div', {}, el('label', {}, 'Kanal'), chSel('welcomeCh', 'Erster Textkanal'), el('label', {}, 'Text (leer = Standard)'),
+          textBox('welcomeMsg', '👋 Willkommen auf **{server}**, {user}! Du bist Mitglied Nr. {count} ❄️'),
+          el('p', { class: 'small muted' }, '{user} = Erwähnung · {name} = Name · {server} = Servername · {count} = Mitgliederzahl'));
+      }),
+      sect('🚪', 'Abschieds-Nachricht', 'Wenn jemand den Server verlässt (im Willkommens-Kanal)', 'leaveOn', function () {
+        return el('div', {}, el('label', {}, 'Text (leer = Standard)'), textBox('leaveMsg', '😢 {name} hat **{server}** verlassen.'));
+      }),
+      sect('⭐', 'Level-System', 'XP für Nachrichten, Level-Ups und Rangliste (/rank, /top)', 'levelsOn', function () {
+        return el('div', {}, el('label', {}, 'Level-Up-Nachrichten in'), chSel('levelCh', 'Im gleichen Kanal'));
+      }),
+      sect('🔗', 'Links blockieren', 'Normale Mitglieder dürfen keine Links schicken', 'antiLink', null),
+      sect('🔠', 'CAPS blockieren', 'Nachrichten, die fast nur GROSS geschrieben sind', 'antiCaps', null),
+      sect('🚫', 'Spam blockieren', 'Dieselbe Nachricht 3x in 30 Sekunden', 'antiSpam', null),
+      el('div', { class: 'ss-card' }, el('b', { class: 'ss-lbl' }, '💬 Befehle (immer an, wenn der Bot aktiv ist)'),
+        el('div', { class: 'cmds' }, SLASH.filter(function (x) { return x.bot === 'galaxy'; }).map(function (x) { return el('div', {}, el('code', {}, x.cmd), ' – ' + x.desc); }))));
+  }
+};
+function randIdx() { return Math.floor(Math.random() * ROLE_COLORS.length); }
 
 // ---------- Sprachkanäle (Gruppen) ----------
 var V = null;
@@ -1827,13 +2257,13 @@ async function sendMsg() {
   var cs = curServer();
   if (cs && /^\/giveaway\b/i.test(text)) {
     if (!(cs.bots && cs.bots.giveaway)) return toast('Der Giveaway-Bot ist auf diesem Server aus 🤖', true);
-    if (!canManage(cs)) return toast('Nur Admins und der Server-Besitzer können Giveaways starten', true);
+    if (!perm(cs, 'giveaway')) return toast('Dir fehlt das Recht „Giveaways starten“', true);
     inp.value = ''; autoGrow(); return openGiveaway(cs, S.view.channel);
   }
   sending = true; $('btnSend').disabled = true;
   try {
-    await api('/api/messages', { channel: S.view.channel, text: text, image: S.pendingImage || undefined });
-    inp.value = ''; autoGrow(); S.pendingImage = null; renderPreview(); S.stick = true; S.lastTyping = 0;
+    await api('/api/messages', { channel: S.view.channel, text: text, image: S.pendingImage || undefined, replyTo: S.replyTo ? S.replyTo.id : undefined });
+    inp.value = ''; autoGrow(); S.pendingImage = null; renderPreview(); S.stick = true; S.lastTyping = 0; cancelReply();
   } catch (e) { toast(e.message, true); }
   sending = false; $('btnSend').disabled = false; inp.focus();
 }
@@ -1957,16 +2387,16 @@ function openCreateChannel(s, type) {
     el('div', { class: 'row end' }, el('button', { class: 'btn', onclick: closeModal }, 'Abbrechen'), el('button', { class: 'btn primary', onclick: go }, 'Erstellen'))));
   inp.focus();
 }
-function openServerInfo() {
+function openServerInfoOld() {
   var s = curServer(); if (!s) return;
   var err = el('div', { class: 'err' });
-  function upd(d) { S.servers[d.server.id] = d.server; renderAll(); openServerInfo(); }
+  function upd(d) { S.servers[d.server.id] = d.server; renderAll(); openServerSettings(curServer(), 'invite'); }
   var addIn = el('input', { placeholder: 'Benutzername eingeben, z. B. Maxi', maxlength: 20 });
   var addMsg = el('div', { class: 'fmsg' });
   var addUser = async function (body) {
     try {
       var d = await api('/api/servers/add', Object.assign({ serverId: s.id }, body));
-      S.servers[d.server.id] = d.server; renderAll(); openServerInfo();
+      S.servers[d.server.id] = d.server; renderAll(); openServerSettings(curServer(), 'invite');
       toast('✅ ' + d.added + ' ist jetzt auf „' + s.name + '“');
     } catch (e) { addMsg.className = 'fmsg bad'; addMsg.textContent = e.message; }
   };
@@ -1987,7 +2417,7 @@ function openServerInfo() {
   ];
   if (canManage(s)) parts.push(el('hr'), el('h3', {}, '🤖 Bots'),
     el('p', { class: 'small' }, 'Giveaway-Bot und Galaxy-Bot (Willkommen, Level, Auto-Mod, Befehle) für diesen Server einstellen.'),
-    el('button', { class: 'btn primary', style: 'margin-top:8px', onclick: function () { openBots(s); } }, '🤖 Bots einstellen'));
+    el('button', { class: 'btn primary', style: 'margin-top:8px', onclick: function () { openServerSettings(s, 'bots'); } }, '🤖 Bots einstellen'));
   if (canManage(s)) {
     var nameIn = el('input', { maxlength: 40 }); nameIn.value = s.name;
     var chIn = el('input', { maxlength: 30, placeholder: 'neuer-kanal' });
@@ -2001,7 +2431,7 @@ function openServerInfo() {
         return el('div', { class: 'list-item' }, el('span', { class: 'hash' }, c.type === 'voice' ? '🔊' : '#'), el('span', { style: 'flex:1' }, c.name),
           s.channels.length > 1 ? el('button', { class: 'btn red small', onclick: function () {
             confirmBox('Kanal #' + c.name + ' und alle Nachrichten darin löschen?', 'Löschen', async function () {
-              var d = await api('/api/channels/delete', { serverId: s.id, channelId: c.id }); S.servers[d.server.id] = d.server; renderAll(); }, openServerInfo);
+              var d = await api('/api/channels/delete', { serverId: s.id, channelId: c.id }); S.servers[d.server.id] = d.server; renderAll(); }, openServerInfoOld);
           } }, 'Löschen') : null);
       }),
       el('div', { class: 'row' }, chIn, el('button', { class: 'btn green', onclick: addCh }, '# Textkanal'),
@@ -2048,7 +2478,7 @@ function userActions(u, reopen, compact) {
     else if (!u.banned) b.push(el('button', { class: 'btn green', onclick: async function () { await sendReq(u.id); if (reopen) reopen(); } }, '➕ Freund hinzufügen'));
   }
   var s = curServer();
-  if (!compact && s && canManage(s) && !s.main && s.members.indexOf(u.id) >= 0 && u.id !== s.ownerId && u.role !== 'owner')
+  if (!compact && s && perm(s, 'kick') && !s.main && s.members.indexOf(u.id) >= 0 && u.id !== s.ownerId && u.role !== 'owner')
     b.push(el('button', { class: 'btn red', onclick: function () {
       confirmBox(u.name + ' aus „' + s.name + '“ kicken?', 'Kicken', async function () {
         var d = await api('/api/servers/kick', { serverId: s.id, userId: u.id }); S.servers[d.server.id] = d.server; renderAll(); toast(u.name + ' wurde gekickt'); });
@@ -2078,6 +2508,8 @@ function openProfile(uid) {
     el('div', { class: 'prof-name' }, u.name, roleBadge(u), u.banned ? el('span', { class: 'badge-role ban' }, 'gebannt') : null, isFriend(u.id) ? el('span', { class: 'frbadge' }, '👥 Freund') : null),
     el('p', { class: 'muted small' }, (u.online ? '🟢 Online' : '⚫ Offline') + '  •  Dabei seit ' + fmtDate(u.created)),
     u.about ? el('div', { class: 'prof-about' }, el('h3', {}, 'Über mich'), el('p', {}, u.about)) : null,
+    curServer() && rolesOf(curServer(), u.id).length ? el('div', { class: 'prof-about' }, el('h3', {}, 'Rollen'),
+      el('div', { class: 'rchips' }, rolesOf(curServer(), u.id).map(function (r) { return el('span', { class: 'rchip' }, el('i', { class: 'rdot', style: 'background:' + (r.color || '#8e9bc2') }), r.name); }))) : null,
     acts.length ? el('div', { class: 'row', style: 'margin-top:16px' }, acts) : null,
     el('div', { class: 'row end' }, el('button', { class: 'btn', onclick: closeModal }, 'Schließen'))));
 }
@@ -2248,8 +2680,10 @@ $('main').addEventListener('dragover', function (e) { e.preventDefault(); });
 $('main').addEventListener('drop', function (e) { e.preventDefault(); if (e.dataTransfer.files.length && S.view.channel) setImage(e.dataTransfer.files[0]); });
 document.addEventListener('keydown', function (e) {
   if (e.key !== 'Escape') return;
-  closePicker();
+  closePicker(); closeCtx();
   if (!$('modal').classList.contains('hidden')) closeModal();
+  else if (SS) closeSS();
+  else if (S.replyTo) cancelReply();
   else if (S.editing) { S.editing = null; renderMessages(); }
 });
 document.addEventListener('visibilitychange', function () {
