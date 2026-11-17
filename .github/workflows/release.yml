@@ -1,27 +1,46 @@
 name: Frostbyte bauen und veroeffentlichen
 
+# Bei jedem Hochladen: Ist die Version in main.go neu, wird automatisch
+# die Frostbyte.exe gebaut und als neue Version veroeffentlicht.
 on:
   push:
-    tags: ["v*"]
+    branches: [main]
+  workflow_dispatch:
 
 permissions:
   contents: write
 
 jobs:
-  build:
+  release:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Version lesen
+        id: v
+        run: |
+          V=$(grep -oP 'Version\s*=\s*"\K[0-9]+' main.go)
+          echo "tag=v$V" >> "$GITHUB_OUTPUT"
+          if git ls-remote --tags origin "refs/tags/v$V" | grep -q .; then
+            echo "Version v$V gibt es schon - nichts zu tun."
+            echo "exists=1" >> "$GITHUB_OUTPUT"
+          fi
       - uses: actions/setup-go@v5
+        if: steps.v.outputs.exists != '1'
         with:
           go-version: "1.24"
       - name: Test
+        if: steps.v.outputs.exists != '1'
         run: go test ./...
       - name: Windows-App bauen
+        if: steps.v.outputs.exists != '1'
         run: GOOS=windows GOARCH=amd64 go build -trimpath -ldflags "-H windowsgui -s -w" -o Frostbyte.exe .
-      - name: Release veroeffentlichen
+      - name: Version veroeffentlichen
+        if: steps.v.outputs.exists != '1'
         uses: softprops/action-gh-release@v2
         with:
-          files: Frostbyte.exe
-          name: Frostbyte ${{ github.ref_name }}
+          tag_name: ${{ steps.v.outputs.tag }}
+          target_commitish: ${{ github.sha }}
+          name: Frostbyte ${{ steps.v.outputs.tag }}
           body_path: CHANGES.md
+          files: Frostbyte.exe
+          make_latest: true

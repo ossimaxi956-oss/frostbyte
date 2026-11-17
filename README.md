@@ -13,5 +13,5 @@ Frostbyte aktualisiert sich danach automatisch.
 
 ## Für Entwickler
 - Geschrieben in Go, keine Abhängigkeiten.
-- Neue Version veröffentlichen: `Version` in `main.go` erhöhen, `CHANGES.md` anpassen, Tag `vNN` pushen –
+- Neue Version veröffentlichen: `Version` in `main.go` erhöhen, `CHANGES.md` anpassen und hochladen –
   GitHub baut dann automatisch die `Frostbyte.exe` und alle Apps updaten sich selbst.
