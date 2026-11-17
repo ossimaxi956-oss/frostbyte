@@ -216,3 +216,193 @@ func voiceWS(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 }
+
+// ===================== Sprachkanaele (Gruppen) =====================
+// Jeder schickt seinen Ton an den Server, der Server verteilt ihn an alle anderen im Kanal.
+// Format an die Clients: 16 Zeichen Benutzer-ID + Ton-Daten.
+
+var vcs = map[string]map[string]*wsConn{} // Kanal -> Benutzer -> Verbindung (unter vmu)
+
+func vcUsers(ch string) []string {
+	out := []string{}
+	for uid := range vcs[ch] {
+		out = append(out, uid)
+	}
+	return out
+}
+
+// Sprachkanal-Belegung aller Kanaele eines Servers (mu muss gehalten werden)
+func vcStateFor(s *Server) M {
+	vmu.Lock()
+	defer vmu.Unlock()
+	st := M{}
+	for _, c := range s.Channels {
+		if c.Type == "voice" {
+			st[c.ID] = vcUsers(c.ID)
+		}
+	}
+	return st
+}
+
+// Allen auf dem Server mitteilen, wer im Kanal ist (mu muss gehalten werden)
+func vcBroadcast(s *Server, ch string) {
+	vmu.Lock()
+	users := vcUsers(ch)
+	vmu.Unlock()
+	send(s.Members, "voice_state", M{"serverId": s.ID, "channel": ch, "users": users})
+}
+
+// Wirft jemanden aus Sprachkanaelen (ganzer Server oder alle, wenn sid leer)
+func vcKick(uid, sid string) {
+	vmu.Lock()
+	for ch, m := range vcs {
+		if c := m[uid]; c != nil {
+			if sid == "" || channelServer(ch) == sid {
+				c.write(1, []byte("kicked"))
+				c.c.Close()
+			}
+		}
+	}
+	vmu.Unlock()
+}
+
+// Alle aus einem Kanal werfen (z. B. wenn er geloescht wird)
+func vcCloseChannel(ch string) {
+	vmu.Lock()
+	for _, c := range vcs[ch] {
+		c.write(1, []byte("deleted"))
+		c.c.Close()
+	}
+	vmu.Unlock()
+}
+
+var chServer = map[string]string{} // Kanal -> Server (Zwischenspeicher, unter vmu)
+
+func channelServer(ch string) string { return chServer[ch] }
+
+func vcWS(w http.ResponseWriter, r *http.Request) {
+	ch := r.URL.Query().Get("channel")
+	mu.Lock()
+	u, _ := authUser(r)
+	var srv *Server
+	if u != nil {
+		if cc := ctxOf(ch); cc != nil && !cc.isDM && contains(cc.server.Members, u.ID) {
+			for _, c := range cc.server.Channels {
+				if c.ID == ch && c.Type == "voice" {
+					srv = cc.server
+				}
+			}
+		}
+	}
+	mu.Unlock()
+	if srv == nil || !strings.EqualFold(r.Header.Get("Upgrade"), "websocket") {
+		http.Error(w, "Kein Zugriff", 403)
+		return
+	}
+	key := r.Header.Get("Sec-WebSocket-Key")
+	hj, ok := w.(http.Hijacker)
+	if !ok || key == "" {
+		http.Error(w, "geht nicht", 500)
+		return
+	}
+	conn, brw, err := hj.Hijack()
+	if err != nil {
+		return
+	}
+	sum := sha1.Sum([]byte(key + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11"))
+	brw.WriteString("HTTP/1.1 101 Switching Protocols\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Accept: " +
+		base64.StdEncoding.EncodeToString(sum[:]) + "\r\n\r\n")
+	brw.Flush()
+	ws := &wsConn{c: conn, r: brw.Reader}
+	me := u.ID
+	prefix := []byte(me)
+	if len(prefix) != 16 {
+		conn.Close()
+		return
+	}
+	vmu.Lock()
+	// in einem anderen Sprachkanal? -> dort raus
+	for och, m := range vcs {
+		if old := m[me]; old != nil {
+			old.write(1, []byte("moved"))
+			old.c.Close()
+			delete(m, me)
+			if och != ch {
+				go func(och string) {
+					mu.Lock()
+					if s := db.Servers[channelServer(och)]; s != nil {
+						vcBroadcast(s, och)
+					}
+					mu.Unlock()
+				}(och)
+			}
+		}
+	}
+	if vcs[ch] == nil {
+		vcs[ch] = map[string]*wsConn{}
+	}
+	vcs[ch][me] = ws
+	chServer[ch] = srv.ID
+	vmu.Unlock()
+	mu.Lock()
+	vcBroadcast(srv, ch)
+	mu.Unlock()
+	ws.write(1, []byte("joined"))
+
+	defer func() {
+		conn.Close()
+		vmu.Lock()
+		removed := false
+		if vcs[ch][me] == ws {
+			delete(vcs[ch], me)
+			removed = true
+			if len(vcs[ch]) == 0 {
+				delete(vcs, ch)
+			}
+		}
+		vmu.Unlock()
+		if removed {
+			mu.Lock()
+			if s := db.Servers[srv.ID]; s != nil {
+				vcBroadcast(s, ch)
+			}
+			mu.Unlock()
+		}
+	}()
+	for {
+		conn.SetReadDeadline(time.Now().Add(60 * time.Second))
+		op, data, err := ws.read()
+		if err != nil {
+			return
+		}
+		switch op {
+		case 8:
+			ws.write(8, nil)
+			return
+		case 9:
+			ws.write(10, data)
+		case 1:
+			if string(data) == "ping" {
+				ws.write(1, []byte("pong"))
+			}
+		case 2:
+			if len(data) > 8000 {
+				continue
+			}
+			pkt := append(append([]byte{}, prefix...), data...)
+			vmu.Lock()
+			others := []*wsConn{}
+			for uid, c := range vcs[ch] {
+				if uid != me {
+					others = append(others, c)
+				}
+			}
+			vmu.Unlock()
+			for _, c := range others {
+				if c.write(2, pkt) != nil {
+					c.c.Close()
+				}
+			}
+		}
+	}
+}

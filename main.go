@@ -40,7 +40,7 @@ const (
 	OwnerName     = "Owner"
 	OwnerPassword = "Owner#2026" // nur beim allerersten Start benutzt
 	DefaultPort   = "3000"
-	Version       = "13"
+	Version       = "14"
 )
 
 //go:embed index.html
@@ -89,6 +89,7 @@ type Session struct {
 type Channel struct {
 	ID   string `json:"id"`
 	Name string `json:"name"`
+	Type string `json:"type,omitempty"` // "" = Text, "voice" = Sprache
 }
 type Server struct {
 	ID       string    `json:"id"`
@@ -264,9 +265,9 @@ func createUser(name, pw, role string) *User {
 	return u
 }
 func makeServer(name, ownerID string, defaults bool) *Server {
-	ch := []Channel{{newID(), "allgemein"}}
+	ch := []Channel{{newID(), "allgemein", ""}, {newID(), "Sprachchat", "voice"}}
 	if defaults {
-		ch = []Channel{{newID(), "allgemein"}, {newID(), "winter-chat"}, {newID(), "memes"}, {newID(), "spiele"}, {newID(), "bilder"}}
+		ch = []Channel{{newID(), "allgemein", ""}, {newID(), "winter-chat", ""}, {newID(), "memes", ""}, {newID(), "spiele", ""}, {newID(), "bilder", ""}, {newID(), "Sprachchat", "voice"}}
 	}
 	s := &Server{ID: newID(), Name: name, OwnerID: ownerID, Invite: inviteCode(), Members: []string{ownerID}, Channels: ch, Created: now()}
 	db.Servers[s.ID] = s
@@ -792,9 +793,13 @@ func setupRoutes() {
 			users = append(users, pubUser(u))
 		}
 		servers := make([]PubServer, 0)
+		voice := M{}
 		for _, s := range db.Servers {
 			if contains(s.Members, c.user.ID) {
 				servers = append(servers, pubServer(s))
+				for k, v := range vcStateFor(s) {
+					voice[k] = v
+				}
 			}
 		}
 		dms := make([]*DM, 0)
@@ -804,7 +809,7 @@ func setupRoutes() {
 			}
 		}
 		return M{"app": AppName, "version": Version, "me": pubUser(c.user), "mainServer": db.MainServer, "emojis": EMOJIS, "colors": COLORS,
-			"users": users, "servers": servers, "dms": dms, "friends": friendState(c.user.ID), "publicUrl": publicURL, "lan": func() []string {
+			"users": users, "servers": servers, "dms": dms, "friends": friendState(c.user.ID), "voice": voice, "publicUrl": publicURL, "lan": func() []string {
 				if c.user.Role != "owner" {
 					return []string{}
 				}
@@ -1048,6 +1053,7 @@ func setupRoutes() {
 			return nil, fail(400, "Du bist der Besitzer – lösche den Server stattdessen")
 		}
 		s.Members = without(s.Members, c.user.ID)
+		vcKick(c.user.ID, s.ID)
 		serverChanged(s)
 		send([]string{c.user.ID}, "server_removed", M{"serverId": s.ID})
 		return nil, nil
@@ -1065,6 +1071,7 @@ func setupRoutes() {
 		}
 		for _, ch := range s.Channels {
 			delete(db.Messages, ch.ID)
+			vcCloseChannel(ch.ID)
 		}
 		delete(db.Servers, s.ID)
 		save()
@@ -1087,6 +1094,7 @@ func setupRoutes() {
 			return nil, fail(403, "Diese Person kannst du nicht kicken")
 		}
 		s.Members = without(s.Members, t.ID)
+		vcKick(t.ID, s.ID)
 		out, _ := serverChanged(s)
 		send([]string{t.ID}, "server_removed", M{"serverId": s.ID})
 		return out, nil
@@ -1096,7 +1104,12 @@ func setupRoutes() {
 		if err != nil {
 			return nil, err
 		}
+		typ := ""
 		name := chanName(c.b.Name)
+		if c.b.Role == "voice" {
+			typ = "voice"
+			name = trunc(strings.TrimSpace(c.b.Name), 30)
+		}
 		if name == "" {
 			return nil, fail(400, "Ungültiger Kanalname")
 		}
@@ -1106,7 +1119,7 @@ func setupRoutes() {
 		if len(s.Channels) >= 50 {
 			return nil, fail(400, "Maximal 50 Kanäle")
 		}
-		s.Channels = append(s.Channels, Channel{newID(), name})
+		s.Channels = append(s.Channels, Channel{newID(), name, typ})
 		return serverChanged(s)
 	})
 	R("POST /api/channels/delete", func(c *Ctx) (any, error) {
@@ -1114,8 +1127,14 @@ func setupRoutes() {
 		if err != nil {
 			return nil, err
 		}
-		if len(s.Channels) <= 1 {
-			return nil, fail(400, "Ein Kanal muss bleiben")
+		texts := 0
+		for _, ch := range s.Channels {
+			if ch.Type != "voice" && ch.ID != c.b.ChannelID {
+				texts++
+			}
+		}
+		if texts == 0 {
+			return nil, fail(400, "Ein Textkanal muss bleiben")
 		}
 		keep := []Channel{}
 		found := false
@@ -1131,7 +1150,31 @@ func setupRoutes() {
 		}
 		s.Channels = keep
 		delete(db.Messages, c.b.ChannelID)
+		vcCloseChannel(c.b.ChannelID)
 		return serverChanged(s)
+	})
+	R("POST /api/channels/rename", func(c *Ctx) (any, error) {
+		s, err := getServer(c.user, c.b.ServerID, true)
+		if err != nil {
+			return nil, err
+		}
+		for i, ch := range s.Channels {
+			if ch.ID == c.b.ChannelID {
+				name := chanName(c.b.Name)
+				if ch.Type == "voice" {
+					name = trunc(strings.TrimSpace(c.b.Name), 30)
+				}
+				if name == "" {
+					return nil, fail(400, "Ungültiger Kanalname")
+				}
+				if err := checkText(c.user, strings.ReplaceAll(name, "-", " "), "Kanalname"); err != nil {
+					return nil, err
+				}
+				s.Channels[i].Name = name
+				return serverChanged(s)
+			}
+		}
+		return nil, fail(404, "Kanal nicht gefunden")
 	})
 
 	R("POST /api/dm/open", func(c *Ctx) (any, error) {
@@ -1193,6 +1236,7 @@ func setupRoutes() {
 		save()
 		if t.Banned {
 			kickSessions(t.ID, "", "banned")
+			vcKick(t.ID, "")
 		}
 		sendAll("user_update", pubUser(t))
 		return M{"user": pubUser(t)}, nil
@@ -1447,7 +1491,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	}
 	if r.Method == "GET" && (p == "/icon-192.png" || p == "/icon-512.png" || p == "/apple-touch-icon.png") {
 		w.Header().Set("Content-Type", "image/png")
-		w.Header().Set("Cache-Control", "public, max-age=86400")
+		w.Header().Set("Cache-Control", "no-cache")
 		if p == "/icon-512.png" {
 			w.Write(icon512)
 		} else {
@@ -1464,7 +1508,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	}
 	if r.Method == "GET" && (p == "/logo.svg" || p == "/favicon.ico") {
 		w.Header().Set("Content-Type", "image/svg+xml")
-		w.Header().Set("Cache-Control", "public, max-age=86400")
+		w.Header().Set("Cache-Control", "no-cache")
 		w.Write(logoSVG)
 		return
 	}
@@ -1483,6 +1527,10 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Cache-Control", "public, max-age=31536000")
 		w.Header().Set("X-Content-Type-Options", "nosniff")
 		w.Write(data)
+		return
+	}
+	if r.Method == "GET" && p == "/api/vc" {
+		vcWS(w, r)
 		return
 	}
 	if r.Method == "GET" && p == "/api/voice" {

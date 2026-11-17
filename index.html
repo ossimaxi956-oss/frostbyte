@@ -253,6 +253,35 @@ input,textarea{font:inherit;color:var(--text)}
 .loghead{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .logtext{margin-top:6px;color:var(--text);overflow-wrap:anywhere;white-space:pre-wrap;background:#0b1322;border-radius:6px;padding:6px 8px;font-size:14px}
 .logimg{max-width:160px;max-height:120px;border-radius:6px;margin-top:6px;cursor:zoom-in}
+.ctx{position:fixed;z-index:80;min-width:210px;background:rgba(12,16,32,.97);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:6px;box-shadow:0 16px 40px rgba(0,0,0,.6);backdrop-filter:blur(14px);animation:pop .1s}
+.ctx-it{display:flex;width:100%;align-items:center;justify-content:space-between;gap:16px;padding:8px 10px;border-radius:8px;font-size:14px;font-weight:500;color:#dfe5ff;text-align:left}
+.ctx-it:hover{background:linear-gradient(135deg,#6d5dfc,#8b5cf6);color:#fff}
+.ctx-it.danger{color:#ff6b81}.ctx-it.danger:hover{background:#e11d48;color:#fff}
+.ctx-ic{font-size:14px;opacity:.9;width:18px;text-align:center}
+.ctx-sep{height:1px;background:rgba(255,255,255,.08);margin:4px 6px}
+.vchan.connected{color:#4ade80}
+.vuser{display:flex;align-items:center;gap:8px;padding:3px 8px 3px 34px;border-radius:8px;cursor:pointer;color:#c3cbe6;font-size:14px}
+.vuser:hover{background:rgba(255,255,255,.05)}
+.vuser .av{transition:box-shadow .12s}
+.vuser.talk .av{box-shadow:0 0 0 2px #2ee59d}
+.vuser .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.vico{font-size:12px}
+.vroom{min-height:100%;display:flex;flex-direction:column;align-items:center;gap:26px;padding:40px 20px;text-align:center}
+.vr-icon{font-size:40px;width:84px;height:84px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 10px;background:linear-gradient(135deg,#2ee6f5,#6d5dfc,#e14bd6);box-shadow:0 10px 30px rgba(109,93,252,.5)}
+.vr-head h2{font-size:28px;font-weight:900;color:#fff}
+.vr-head p{color:var(--muted);margin-top:4px}
+.vgrid{display:flex;flex-wrap:wrap;gap:16px;justify-content:center;max-width:820px}
+.vtile{width:190px;height:150px;border-radius:18px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;background:linear-gradient(160deg,color-mix(in srgb,var(--tile) 35%,transparent),rgba(255,255,255,.03));border:2px solid rgba(255,255,255,.08);transition:border-color .12s,box-shadow .12s}
+.vtile.talk{border-color:#2ee59d;box-shadow:0 0 0 3px rgba(46,229,157,.25),0 0 30px rgba(46,229,157,.25)}
+.vt-name{font-weight:700;color:#fff}
+.vr-empty{font-size:64px;opacity:.6}
+.vr-btns{display:flex;gap:14px}
+.typepick{display:flex;flex-direction:column;gap:8px}
+.tp{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:12px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);text-align:left}
+.tp.on{background:rgba(124,108,255,.18);border-color:rgba(124,108,255,.6)}
+.tp .tpi{font-size:22px;width:28px;text-align:center}
+.tp b{display:block;color:#fff}.tp small{color:var(--muted)}
+.tp .tpr{margin-left:auto;color:#a99cff;font-size:18px}
 .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
 .chip{background:#0d1626;border:1px solid #2a3a55;border-radius:14px;padding:3px 6px 3px 10px;font-size:13px;display:flex;align-items:center;gap:4px}
 .chip button{color:var(--muted);font-size:13px;padding:0 4px}.chip button:hover{color:#fa777c}
@@ -566,6 +595,7 @@ async function loadState() {
   S.publicUrl = d.publicUrl || '';
   S.badWords = d.badWords || [];
   S.lan = d.lan || [];
+  S.voiceSt = d.voice || {};
   if (S.version && d.version && S.version !== d.version) { location.reload(); return; }
   S.version = d.version;
   S.users[S.me.id].online = true; S.me = S.users[S.me.id];
@@ -647,6 +677,12 @@ function handle(type, d) {
       else { renderRail(); renderSide(); renderHead(); renderMembers(); }
       break;
     case 'call': onCall(d.from, d.data); break;
+    case 'voice_state':
+      var before = (S.voiceSt[d.channel] || []).length;
+      S.voiceSt[d.channel] = d.users;
+      if (V && V.ch === d.channel && V.joined) { if (d.users.length > before) sfx(true); else if (d.users.length < before) sfx(false); }
+      renderSide(); if (S.view.channel === d.channel) renderMessages();
+      break;
     case 'updating': toast('⬆️ ' + APP + ' bekommt ein Update (' + d.version + ') – gleich geht es automatisch weiter …'); break;
     case 'reported':
       toast('🚩 ' + d.by + ' hat eine Nachricht von ' + d.name + ' gemeldet – siehe 🛡️ Protokoll', true);
@@ -700,6 +736,7 @@ function showAuth(msg) {
 }
 function logoutLocal(msg) {
   if (typeof C !== 'undefined' && C) hangup();
+  if (typeof V !== 'undefined' && V) leaveVC(true);
   if (S.es) { S.es.close(); S.es = null; }
   S.token = null; S.me = null; S.msgs = {}; S.unread = {};
   try { localStorage.removeItem('mc_token'); } catch (e) {}
@@ -729,8 +766,8 @@ function selectServer(id) {
   var s = S.servers[id] || S.servers[S.main] || Object.values(S.servers)[0];
   if (!s) return selectServer('dm');
   S.view.server = s.id;
-  var lc = S.lastChan[s.id];
-  openChannel(s.channels.some(function (c) { return c.id === lc; }) ? lc : s.channels[0].id);
+  var lc = S.lastChan[s.id], first = s.channels.filter(function (c) { return c.type !== 'voice'; })[0] || s.channels[0];
+  openChannel(s.channels.some(function (c) { return c.id === lc && c.type !== 'voice'; }) ? lc : first.id);
 }
 function openChannel(ch) {
   S.view.channel = ch; S.editing = null; S.stick = true;
@@ -738,8 +775,8 @@ function openChannel(ch) {
   try { localStorage.setItem('mc_view', JSON.stringify({ server: S.view.server, lastChan: S.lastChan })); } catch (e) {}
   $('app').classList.remove('nav-open');
   renderAll();
-  if (ch && ch !== 'friends' && !S.msgs[ch]) loadMessages(ch);
-  if (window.innerWidth > 760 && ch && ch !== 'friends') $('input').focus();
+  if (ch && ch !== 'friends' && !isVoiceCh(ch) && !S.msgs[ch]) loadMessages(ch);
+  if (window.innerWidth > 760 && ch && ch !== 'friends' && !isVoiceCh(ch)) $('input').focus();
 }
 function toggleMembers() {
   var a = $('app');
@@ -764,7 +801,9 @@ function renderRail() {
   r.append(el('div', { class: 'rail-sep' }));
   Object.values(S.servers).sort(function (a, b) { return (b.main ? 1 : 0) - (a.main ? 1 : 0) || a.name.localeCompare(b.name); }).forEach(function (s) {
     var un = s.channels.some(function (c) { return S.unread[c.id] > 0; });
-    r.append(railItem({ icon: initials(s.name), title: s.name, active: S.view.server === s.id, unread: un, onclick: function () { selectServer(s.id); } }));
+    var ri = railItem({ icon: initials(s.name), title: s.name, active: S.view.server === s.id, unread: un, onclick: function () { selectServer(s.id); } });
+    ri.oncontextmenu = function (e) { serverMenu(e, s); }; longPress(ri, function (e) { serverMenu(e, s); });
+    r.append(ri);
   });
   r.append(railItem({ icon: '+', title: 'Server erstellen oder beitreten', cls: 'add', onclick: openServerModal }));
   if (isMod()) r.append(railItem({ icon: '🛡️', title: 'Admin-Bereich', cls: 'adm', onclick: openAdmin }));
@@ -791,12 +830,37 @@ function renderSide() {
     var s = curServer(); if (!s) return;
     head.classList.add('click'); head.onclick = openServerInfo;
     head.append(el('span', { class: 'nm' }, s.name), el('span', {}, '▾'));
+    list.oncontextmenu = function (e) { if (e.target === list && canManage(s)) ctxMenu(e, [
+      { label: 'Textkanal erstellen', icon: '#', fn: function () { openCreateChannel(s, 'text'); } },
+      { label: 'Sprachkanal erstellen', icon: '🔊', fn: function () { openCreateChannel(s, 'voice'); } }]); };
     list.append(el('div', { class: 'cat' }, el('span', {}, 'Textkanäle'),
-      canManage(s) ? el('button', { title: 'Kanal erstellen', onclick: function (e) { e.stopPropagation(); openCreateChannel(s); } }, '+') : null));
-    s.channels.forEach(function (c) {
+      canManage(s) ? el('button', { title: 'Textkanal erstellen', onclick: function (e) { e.stopPropagation(); openCreateChannel(s, 'text'); } }, '+') : null));
+    s.channels.filter(function (c) { return c.type !== 'voice'; }).forEach(function (c) {
       var n = S.unread[c.id] || 0;
-      list.append(el('div', { class: 'chan' + (c.id === S.view.channel ? ' active' : '') + (n ? ' unread' : ''), onclick: function () { openChannel(c.id); } },
-        el('span', { class: 'hash' }, '#'), el('span', { class: 'nm' }, c.name), n ? el('span', { class: 'cnt' }, n > 99 ? '99+' : n) : null));
+      var row = el('div', { class: 'chan' + (c.id === S.view.channel ? ' active' : '') + (n ? ' unread' : ''), onclick: function () { openChannel(c.id); },
+        oncontextmenu: function (e) { channelMenu(e, s, c); } },
+        el('span', { class: 'hash' }, '#'), el('span', { class: 'nm' }, c.name), n ? el('span', { class: 'cnt' }, n > 99 ? '99+' : n) : null);
+      longPress(row, function (e) { channelMenu(e, s, c); });
+      list.append(row);
+    });
+    list.append(el('div', { class: 'cat' }, el('span', {}, 'Sprachkanäle'),
+      canManage(s) ? el('button', { title: 'Sprachkanal erstellen', onclick: function (e) { e.stopPropagation(); openCreateChannel(s, 'voice'); } }, '+') : null));
+    s.channels.filter(function (c) { return c.type === 'voice'; }).forEach(function (c) {
+      var inIt = V && V.ch === c.id;
+      var row = el('div', { class: 'chan vchan' + (c.id === S.view.channel ? ' active' : '') + (inIt ? ' connected' : ''), onclick: function () { joinVC(c.id); },
+        oncontextmenu: function (e) { channelMenu(e, s, c); } },
+        el('span', { class: 'hash emo' }, '🔊'), el('span', { class: 'nm' }, c.name));
+      longPress(row, function (e) { channelMenu(e, s, c); });
+      list.append(row);
+      (S.voiceSt[c.id] || []).forEach(function (uid) {
+        var u = S.users[uid]; if (!u) return;
+        var vu = el('div', { class: 'vuser', 'data-vtalk': uid, onclick: function () { openProfile(uid); }, oncontextmenu: function (e) { memberMenu(e, u); } },
+          avatar(u, 24), el('span', { class: 'nm' }, u.name),
+          uid === S.me.id && V && V.muted ? el('span', { class: 'vico', title: 'Stumm' }, '🔇') : null,
+          uid === S.me.id && V && V.deaf ? el('span', { class: 'vico', title: 'Taub' }, '🎧') : null);
+        if (V && V.talk && V.talk[uid]) vu.classList.add('talk');
+        list.append(vu);
+      });
     });
   }
   var up = $('userPanel'); up.textContent = '';
@@ -825,7 +889,7 @@ function renderHead() {
   }
   if (s) {
     var c = s.channels.filter(function (x) { return x.id === ch; })[0];
-    h.append(el('span', { class: 'hash' }, '#'), el('span', { class: 'title' }, c ? c.name : ''));
+    h.append(el('span', { class: 'hash' }, c && c.type === 'voice' ? '🔊' : '#'), el('span', { class: 'title' }, c ? c.name : ''));
   } else if (ch && S.dms[ch]) {
     var u = dmPartner(S.dms[ch]);
     h.append(el('span', { class: 'hash' }, '@'), el('span', { class: 'title' }, u.name), el('span', { class: 'dot-inline' + (u.online ? ' on' : ''), title: u.online ? 'Online' : 'Offline' }));
@@ -842,6 +906,7 @@ function renderMessages() {
   var box = $('msgs'), prevTop = box.scrollTop; box.textContent = '';
   var ch = S.view.channel;
   if (ch === 'friends') { renderFriends(box); box.scrollTop = 0; return; }
+  if (isVoiceCh(ch)) { renderVoiceRoom(box, ch); return; }
   if (!ch) {
     box.append(el('div', { class: 'empty' }, el('div', { class: 'empty-icon' }, '☃️'), el('h3', {}, 'Noch keine Direktnachrichten'),
       el('p', {}, 'Schreib jemandem privat – nur ihr zwei könnt es lesen.'), el('button', { class: 'btn primary', onclick: openNewDm }, 'Neue Nachricht')));
@@ -869,7 +934,7 @@ function renderMessages() {
 function renderMsg(m, grouped) {
   var u = S.users[m.userId] || { id: m.userId, name: 'Unbekannt', color: '#6f84a3', role: 'user' };
   var mine = m.userId === S.me.id;
-  var row = el('div', { class: 'msg' + (grouped ? ' grouped' : '') + (mentionsMe(m.text) ? ' mentioned' : '') });
+  var row = el('div', { class: 'msg' + (grouped ? ' grouped' : '') + (mentionsMe(m.text) ? ' mentioned' : ''), oncontextmenu: function (e) { if (!e.target.closest('a,textarea')) messageMenu(e, m); } });
   row.addEventListener('click', function (e) {
     if (e.target.closest('a,button,textarea,img,.av,.mname')) return;
     document.querySelectorAll('.msg.sel').forEach(function (x) { if (x !== row) x.classList.remove('sel'); });
@@ -917,8 +982,8 @@ function renderMsg(m, grouped) {
 }
 function renderComposer() {
   var ch = S.view.channel;
-  $('composerWrap').classList.toggle('hidden', !ch || ch === 'friends');
-  if (!ch || ch === 'friends') return;
+  $('composerWrap').classList.toggle('hidden', !ch || ch === 'friends' || isVoiceCh(ch));
+  if (!ch || ch === 'friends' || isVoiceCh(ch)) return;
   var s = curServer(), ph = 'Nachricht';
   if (s) { var c = s.channels.filter(function (x) { return x.id === ch; })[0]; ph = 'Nachricht an #' + (c ? c.name : ''); }
   else if (S.dms[ch]) ph = 'Nachricht an @' + dmPartner(S.dms[ch]).name;
@@ -934,7 +999,7 @@ function renderTyping() {
   if (txt) box.append(el('span', { class: 'dots' }, el('i'), el('i'), el('i')), el('span', {}, txt));
 }
 function memRow(u, s, off) {
-  return el('div', { class: 'mem' + (off ? ' off' : ''), onclick: function () { openProfile(u.id); } },
+  return el('div', { class: 'mem' + (off ? ' off' : ''), onclick: function () { openProfile(u.id); }, oncontextmenu: function (e) { memberMenu(e, u); } },
     avatar(u, 32, null, true), el('span', { class: 'nm', style: 'color:' + u.color }, u.name),
     s && u.id === s.ownerId ? el('span', { title: 'Server-Besitzer' }, '👑') : null, roleBadge(u));
 }
@@ -998,6 +1063,245 @@ async function openUserLog(u, back) {
   } catch (e) { toast(e.message, true); }
 }
 
+// ---------- Rechtsklick-Menü (wie Discord) ----------
+function closeCtx() { var m = $('ctx'); if (m) m.remove(); document.removeEventListener('click', closeCtx); document.removeEventListener('contextmenu', closeCtxOther, true); window.removeEventListener('blur', closeCtx); }
+function closeCtxOther(e) { var m = $('ctx'); if (m && !m.contains(e.target)) closeCtx(); }
+function ctxMenu(e, items) {
+  e.preventDefault(); e.stopPropagation(); closeCtx(); closePicker();
+  items = items.filter(Boolean);
+  while (items.length && items[items.length - 1] === '-') items.pop();
+  if (!items.length) return;
+  var m = el('div', { class: 'ctx', id: 'ctx', oncontextmenu: function (ev) { ev.preventDefault(); } }, items.map(function (it) {
+    if (it === '-') return el('div', { class: 'ctx-sep' });
+    return el('button', { class: 'ctx-it' + (it.danger ? ' danger' : ''), onclick: function (ev) { ev.stopPropagation(); closeCtx(); it.fn(ev); } },
+      el('span', {}, it.label), it.icon ? el('span', { class: 'ctx-ic' }, it.icon) : null);
+  }));
+  document.body.append(m);
+  var x = e.clientX, y = e.clientY;
+  if (x == null && e.touches) { x = e.touches[0].clientX; y = e.touches[0].clientY; }
+  var w = m.offsetWidth, h = m.offsetHeight;
+  m.style.left = Math.max(8, Math.min(x, innerWidth - w - 8)) + 'px';
+  m.style.top = Math.max(8, Math.min(y, innerHeight - h - 8)) + 'px';
+  setTimeout(function () { document.addEventListener('click', closeCtx); document.addEventListener('contextmenu', closeCtxOther, true); window.addEventListener('blur', closeCtx); }, 0);
+}
+function longPress(node, fn) {
+  var t = null, sx = 0, sy = 0;
+  node.addEventListener('touchstart', function (e) {
+    var p = e.touches[0]; sx = p.clientX; sy = p.clientY;
+    t = setTimeout(function () { t = null; fn({ clientX: sx, clientY: sy, preventDefault: function () {}, stopPropagation: function () {} }); }, 550);
+  }, { passive: true });
+  ['touchend', 'touchcancel'].forEach(function (ev) { node.addEventListener(ev, function () { if (t) { clearTimeout(t); t = null; } }); });
+  node.addEventListener('touchmove', function (e) { var p = e.touches[0]; if (t && (Math.abs(p.clientX - sx) > 10 || Math.abs(p.clientY - sy) > 10)) { clearTimeout(t); t = null; } }, { passive: true });
+}
+function copyText(t) { if (navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(t).then(function () { toast('Kopiert ✓'); }); else toast(t); }
+function channelMenu(e, s, c) {
+  var voice = c.type === 'voice', man = canManage(s);
+  ctxMenu(e, [
+    voice ? { label: V && V.ch === c.id ? 'Sprachkanal verlassen' : 'Beitreten', icon: V && V.ch === c.id ? '✖' : '🔊', fn: function () { if (V && V.ch === c.id) leaveVC(); else joinVC(c.id); } }
+          : { label: 'Als gelesen markieren', icon: '✓', fn: function () { S.unread[c.id] = 0; renderSide(); renderRail(); } },
+    voice ? { label: 'Ansehen', icon: '👀', fn: function () { openChannel(c.id); } } : null,
+    man ? '-' : null,
+    man ? { label: 'Kanal bearbeiten', icon: '✏️', fn: function () { openRenameChannel(s, c); } } : null,
+    man ? { label: 'Textkanal erstellen', icon: '#', fn: function () { openCreateChannel(s, 'text'); } } : null,
+    man ? { label: 'Sprachkanal erstellen', icon: '🔊', fn: function () { openCreateChannel(s, 'voice'); } } : null,
+    man ? '-' : null,
+    man ? { label: 'Kanal löschen', icon: '🗑️', danger: true, fn: function () {
+      confirmBox('Kanal „' + c.name + '“ wirklich löschen?' + (voice ? '' : ' Alle Nachrichten darin sind dann weg.'), 'Kanal löschen', async function () {
+        var d = await api('/api/channels/delete', { serverId: s.id, channelId: c.id }); S.servers[d.server.id] = d.server;
+        if (S.view.channel === c.id) selectServer(s.id); else renderAll();
+        toast('🗑️ Kanal gelöscht');
+      });
+    } } : null
+  ]);
+}
+function openRenameChannel(s, c) {
+  var inp = el('input', { maxlength: 30 }); inp.value = c.name; var err = el('div', { class: 'err' });
+  async function go() {
+    try { var d = await api('/api/channels/rename', { serverId: s.id, channelId: c.id, name: inp.value }); S.servers[d.server.id] = d.server; closeModal(); renderAll(); toast('✏️ Gespeichert'); }
+    catch (e) { err.textContent = e.message; }
+  }
+  inp.onkeydown = function (e) { if (e.key === 'Enter') go(); };
+  modal('Kanal bearbeiten', el('div', {}, el('label', {}, 'Kanalname'), inp, err,
+    el('div', { class: 'row end' }, el('button', { class: 'btn', onclick: closeModal }, 'Abbrechen'), el('button', { class: 'btn primary', onclick: go }, 'Speichern'))));
+  inp.focus(); inp.select();
+}
+function serverMenu(e, s) {
+  var owner = s.ownerId === S.me.id || S.me.role === 'owner';
+  ctxMenu(e, [
+    { label: 'Als gelesen markieren', icon: '✓', fn: function () { s.channels.forEach(function (c) { S.unread[c.id] = 0; }); renderRail(); renderSide(); } },
+    '-',
+    { label: 'Leute hinzufügen', icon: '👋', fn: function () { selectServer(s.id); openServerInfo(); } },
+    canManage(s) ? { label: 'Server-Einstellungen', icon: '⚙️', fn: function () { selectServer(s.id); openServerInfo(); } } : null,
+    canManage(s) ? { label: 'Kanal erstellen', icon: '＋', fn: function () { selectServer(s.id); openCreateChannel(s, 'text'); } } : null,
+    { label: 'Einladungscode kopieren', icon: '🔗', fn: function () { copyText(s.invite); } },
+    '-',
+    owner ? { label: 'Server löschen', icon: '🗑️', danger: true, fn: function () {
+      confirmBox('Den Server „' + s.name + '“ mit ALLEN Nachrichten löschen?', 'Server löschen', async function () { await api('/api/servers/delete', { serverId: s.id }); delete S.servers[s.id]; selectServer('dm'); });
+    } } : { label: 'Server verlassen', icon: '🚪', danger: true, fn: function () {
+      confirmBox('Den Server „' + s.name + '“ verlassen?', 'Verlassen', async function () { await api('/api/servers/leave', { serverId: s.id }); delete S.servers[s.id]; selectServer('dm'); });
+    } }
+  ]);
+}
+function memberMenu(e, u) {
+  var me = u.id === S.me.id, s = curServer();
+  ctxMenu(e, [
+    { label: 'Profil', icon: '👤', fn: function () { openProfile(u.id); } },
+    !me ? { label: 'Nachricht', icon: '💬', fn: function () { openDm(u.id); } } : null,
+    !me ? { label: 'Anrufen', icon: '📞', fn: function () { startCall(u.id); } } : null,
+    { label: 'Erwähnen', icon: '@', fn: function () { var i = $('input'); if (!$('composerWrap').classList.contains('hidden')) insertAtCursor(i, '@' + u.name + ' '); } },
+    !me && !isFriend(u.id) && S.fr.outgoing.indexOf(u.id) < 0 ? { label: 'Freund hinzufügen', icon: '➕', fn: function () { sendReq(u.id); } } : null,
+    !me && isFriend(u.id) ? { label: 'Freund entfernen', icon: '➖', fn: function () { removeFriend(u); } } : null,
+    '-',
+    !me && s && canManage(s) && s.ownerId !== u.id && u.role !== 'owner' ? { label: 'Vom Server kicken', icon: '👢', danger: true, fn: function () {
+      confirmBox(u.name + ' aus „' + s.name + '“ kicken?', 'Kicken', async function () { var d = await api('/api/servers/kick', { serverId: s.id, userId: u.id }); S.servers[d.server.id] = d.server; renderAll(); });
+    } } : null,
+    !me && isMod() && u.role !== 'owner' && (S.me.role === 'owner' || u.role === 'user') ? { label: u.banned ? 'Entbannen' : 'Bannen', icon: '⛔', danger: !u.banned, fn: function () {
+      confirmBox(u.banned ? u.name + ' entbannen?' : u.name + ' bannen?', u.banned ? 'Entbannen' : 'Bannen', async function () { var d = await api('/api/admin/ban', { userId: u.id, banned: !u.banned }); S.users[d.user.id] = d.user; renderAll(); });
+    } } : null
+  ]);
+}
+function messageMenu(e, m) {
+  var mine = m.userId === S.me.id, s = curServer(), x = e.clientX, y = e.clientY;
+  var canDel = mine || isMod() || (s && s.ownerId === S.me.id);
+  ctxMenu(e, [
+    { label: 'Reaktion hinzufügen', icon: '😀', fn: function () { emojiPicker({ getBoundingClientRect: function () { return { left: x, right: x, top: y, bottom: y }; } }, function (em) { react(m, em); }); } },
+    mine && m.text ? { label: 'Nachricht bearbeiten', icon: '✏️', fn: function () { startEdit(m); } } : null,
+    m.text ? { label: 'Text kopieren', icon: '📋', fn: function () { copyText(m.text); } } : null,
+    !mine ? { label: 'Erwähnen', icon: '@', fn: function () { var u = S.users[m.userId]; if (u) insertAtCursor($('input'), '@' + u.name + ' '); } } : null,
+    '-',
+    !mine ? { label: 'Nachricht melden', icon: '🚩', danger: true, fn: function () { reportMsg(m); } } : null,
+    canDel ? { label: 'Nachricht löschen', icon: '🗑️', danger: true, fn: function () { delMsg(m); } } : null
+  ]);
+}
+
+// ---------- Sprachkanäle (Gruppen) ----------
+var V = null;
+function isVoiceCh(ch) { var s = curServer(); return !!(s && ch && s.channels.some(function (c) { return c.id === ch && c.type === 'voice'; })); }
+function vcChan() { if (!V) return null; var s = S.servers[V.sid]; return s ? s.channels.filter(function (c) { return c.id === V.ch; })[0] : null; }
+function sfx(up) {
+  try {
+    var ac = audioCtx(), t = ac.currentTime;
+    [0, 0.1].forEach(function (o, i) {
+      var osc = ac.createOscillator(), g = ac.createGain();
+      osc.frequency.value = up ? (i ? 880 : 660) : (i ? 520 : 700);
+      g.gain.setValueAtTime(0.0001, t + o); g.gain.exponentialRampToValueAtTime(0.08, t + o + 0.01); g.gain.exponentialRampToValueAtTime(0.0001, t + o + 0.12);
+      osc.connect(g); g.connect(ac.destination); osc.start(t + o); osc.stop(t + o + 0.14);
+    });
+  } catch (e) {}
+}
+function setVTalk(uid, on) {
+  if (!V) return;
+  V.talk = V.talk || {};
+  if (!!V.talk[uid] === on) return;
+  V.talk[uid] = on;
+  document.querySelectorAll('[data-vtalk="' + uid + '"]').forEach(function (e) { e.classList.toggle('talk', on); });
+}
+async function joinVC(ch) {
+  if (C) return toast('Leg zuerst den Anruf auf 📞', true);
+  if (V && V.ch === ch) return openChannel(ch);
+  if (V) leaveVC(true);
+  var s = curServer(); if (!s) return;
+  audioCtx();
+  var v = V = { ch: ch, sid: s.id, peers: {}, talk: {}, muted: false, deaf: false, joined: false };
+  openChannel(ch);
+  try { v.stream = await getMic(); } catch (e) { toast(e.message, true); V = null; renderSide(); renderCall(); renderMessages(); return; }
+  if (V !== v) { v.stream.getTracks().forEach(function (t) { t.stop(); }); return; }
+  var ac = audioCtx();
+  var ws = new WebSocket((location.protocol === 'https:' ? 'wss://' : 'ws://') + location.host + '/api/vc?token=' + encodeURIComponent(S.token) + '&channel=' + encodeURIComponent(ch));
+  ws.binaryType = 'arraybuffer'; v.ws = ws;
+  var src = ac.createMediaStreamSource(v.stream), proc = ac.createScriptProcessor(2048, 1, 1), sink = ac.createGain();
+  sink.gain.value = 0; src.connect(proc); proc.connect(sink); sink.connect(ac.destination);
+  v.nodes = [src, proc, sink];
+  var ratio = ac.sampleRate / 16000, quiet = 0;
+  proc.onaudioprocess = function (e) {
+    if (V !== v) return;
+    var inp = e.inputBuffer.getChannelData(0), n = Math.floor(inp.length / ratio), out = new Int16Array(n), lvl = 0;
+    for (var i = 0; i < n; i++) {
+      var a = Math.floor(i * ratio), b = Math.min(inp.length, Math.floor((i + 1) * ratio)), sum = 0;
+      for (var j = a; j < b; j++) sum += inp[j];
+      var val = sum / Math.max(1, b - a); lvl += val * val;
+      out[i] = Math.max(-32768, Math.min(32767, val * 32767));
+    }
+    lvl = Math.sqrt(lvl / Math.max(1, n));
+    var talking = !v.muted && lvl > 0.02;
+    if (talking) quiet = 0; else quiet++;
+    setVTalk(S.me.id, talking || (quiet < 4 && !!v.talk[S.me.id]));
+    if (!v.muted && v.joined && ws.readyState === 1 && ws.bufferedAmount < 64000) ws.send(out.buffer);
+  };
+  ws.onmessage = function (ev) {
+    if (V !== v) return;
+    if (typeof ev.data === 'string') {
+      if (ev.data === 'joined') { v.joined = true; sfx(true); renderSide(); renderCall(); if (S.view.channel === ch) renderMessages(); }
+      else if (ev.data === 'kicked' || ev.data === 'deleted') { toast(ev.data === 'deleted' ? 'Der Sprachkanal wurde gelöscht' : 'Du wurdest aus dem Sprachkanal entfernt', true); leaveVC(true); }
+      else if (ev.data === 'moved') { leaveVC(true); }
+      return;
+    }
+    if (ev.data.byteLength < 18) return;
+    var head = new Uint8Array(ev.data, 0, 16), uid = String.fromCharCode.apply(null, head);
+    var pcm = new Int16Array(ev.data.slice(16));
+    var p = v.peers[uid] || (v.peers[uid] = { playAt: 0, quiet: 0 });
+    var buf = ac.createBuffer(1, pcm.length, 16000), chd = buf.getChannelData(0), lv = 0;
+    for (var i = 0; i < pcm.length; i++) { chd[i] = pcm[i] / 32768; lv += chd[i] * chd[i]; }
+    lv = Math.sqrt(lv / pcm.length);
+    if (lv > 0.02) p.quiet = 0; else p.quiet++;
+    setVTalk(uid, lv > 0.02 || (p.quiet < 4 && !!v.talk[uid]));
+    if (v.deaf) return;
+    var now = ac.currentTime;
+    if (p.playAt < now + 0.04 || p.playAt > now + 0.6) p.playAt = now + 0.08;
+    var bs = ac.createBufferSource(); bs.buffer = buf; bs.connect(ac.destination); bs.start(p.playAt);
+    p.playAt += buf.duration;
+  };
+  ws.onclose = function () { if (V === v) { toast('Sprachkanal getrennt', true); leaveVC(true); } };
+  v.ping = setInterval(function () { if (ws.readyState === 1) ws.send('ping'); }, 20000);
+  renderSide(); renderCall();
+}
+function leaveVC(silent) {
+  if (!V) return;
+  var v = V; V = null;
+  clearInterval(v.ping);
+  if (v.ws) try { v.ws.close(); } catch (e) {}
+  if (v.nodes) v.nodes.forEach(function (n) { try { n.disconnect(); } catch (e) {} });
+  if (v.stream) v.stream.getTracks().forEach(function (t) { t.stop(); });
+  if (!silent || v.joined) sfx(false);
+  renderSide(); renderCall(); if (S.view.channel === v.ch) renderMessages();
+}
+function vcMute() { if (!V) return; V.muted = !V.muted; if (V.muted) setVTalk(S.me.id, false); renderSide(); renderVCBar(); if (S.view.channel === V.ch) renderMessages(); }
+function vcDeaf() { if (!V) return; V.deaf = !V.deaf; renderSide(); renderVCBar(); if (S.view.channel === V.ch) renderMessages(); }
+function renderVCBar() {
+  var bar = $('voicebar');
+  if (C) return;
+  bar.textContent = '';
+  if (!V) { bar.classList.add('hidden'); return; }
+  var c = vcChan(), s = S.servers[V.sid];
+  bar.classList.remove('hidden');
+  bar.append(el('div', { class: 'vb-info', title: 'Zum Sprachkanal', onclick: function () { if (s) { S.view.server = s.id; openChannel(V.ch); } } },
+    el('div', { class: 'vb-title' + (V.joined ? '' : ' wait') }, V.joined ? 'Sprachverbindung' : 'Verbinde …'),
+    el('div', { class: 'vb-sub' }, '🔊 ' + (c ? c.name : '') + ' / ' + (s ? s.name : ''))));
+  [el('button', { class: 'vbtn' + (V.muted ? ' on' : ''), title: V.muted ? 'Mikrofon an' : 'Stummschalten', onclick: vcMute }, V.muted ? '🔇' : '🎤'),
+   el('button', { class: 'vbtn' + (V.deaf ? ' on' : ''), title: V.deaf ? 'Ton an' : 'Nichts hören', onclick: vcDeaf }, V.deaf ? '🔈' : '🎧'),
+   el('button', { class: 'vbtn red hang', title: 'Verlassen', onclick: function () { leaveVC(); } }, el('span', {}, '📞'))].forEach(function (b) { bar.append(b); });
+}
+function renderVoiceRoom(box, ch) {
+  var s = curServer(), c = s.channels.filter(function (x) { return x.id === ch; })[0] || { name: '' };
+  var users = (S.voiceSt[ch] || []).map(function (id) { return S.users[id]; }).filter(Boolean);
+  var inIt = V && V.ch === ch;
+  var grid = el('div', { class: 'vgrid' }, users.map(function (u) {
+    var t = el('div', { class: 'vtile' + (V && V.talk && V.talk[u.id] ? ' talk' : ''), 'data-vtalk': u.id, oncontextmenu: function (e) { memberMenu(e, u); } },
+      avatar(u, 88), el('div', { class: 'vt-name' }, u.name, u.id === S.me.id && V && V.muted ? ' 🔇' : '', u.id === S.me.id && V && V.deaf ? ' 🎧' : ''));
+    t.style.setProperty('--tile', u.color);
+    return t;
+  }));
+  box.append(el('div', { class: 'vroom' },
+    el('div', { class: 'vr-head' }, el('div', { class: 'vr-icon' }, '🔊'), el('h2', {}, c.name),
+      el('p', {}, users.length ? users.length + (users.length === 1 ? ' Person ist' : ' Leute sind') + ' gerade hier' : 'Noch niemand hier – sei der Erste!')),
+    users.length ? grid : el('div', { class: 'vr-empty' }, '❄️'),
+    el('div', { class: 'vr-btns' }, inIt ? [
+      el('button', { class: 'cbtn' + (V.muted ? ' on' : ''), title: 'Stummschalten', onclick: vcMute }, V.muted ? '🔇' : '🎤'),
+      el('button', { class: 'cbtn' + (V.deaf ? ' on' : ''), title: 'Nichts hören', onclick: vcDeaf }, V.deaf ? '🔈' : '🎧'),
+      el('button', { class: 'cbtn red hang', title: 'Verlassen', onclick: function () { leaveVC(); } }, el('span', {}, '📞'))
+    ] : el('button', { class: 'btn green big', style: 'width:auto;padding:14px 34px', onclick: function () { joinVC(ch); } }, '🔊 Sprachkanal beitreten'))));
+}
+
 // ---------- Anrufe (Ton läuft über den Frostbyte-Server) ----------
 var C = null, ringTimer = null, callTick = null;
 function nameOf(id) { return (S.users[id] || {}).name || 'Jemand'; }
@@ -1027,6 +1331,7 @@ async function getMic() {
 }
 async function startCall(uid) {
   if (C) return toast('Du bist schon in einem Anruf', true);
+  if (V) leaveVC(true);
   if (!S.users[uid]) return;
   audioCtx();
   var id = Math.random().toString(36).slice(2) + Date.now().toString(36);
@@ -1125,6 +1430,7 @@ async function onCall(from, d) {
 }
 async function acceptCall() {
   var call = C; if (!call || call.state !== 'incoming') return;
+  if (V) leaveVC(true);
   ringStop(); clearTimeout(call.timeout); audioCtx();
   try { call.stream = await getMic(); }
   catch (e) { toast(e.message, true); sig(call.peer, { type: 'decline', id: call.id }).catch(function () {}); return cleanupCall(); }
@@ -1169,7 +1475,7 @@ function renderCall() {
   clearInterval(callTick);
   var box = $('callbox'), panel = $('callpanel'), bar = $('voicebar');
   box.textContent = ''; panel.textContent = ''; bar.textContent = '';
-  if (!C) { box.className = 'hidden'; panel.classList.add('hidden'); bar.classList.add('hidden'); return; }
+  if (!C) { box.className = 'hidden'; panel.classList.add('hidden'); bar.classList.add('hidden'); renderVCBar(); return; }
   var u = S.users[C.peer] || { name: '?', color: '#6f84a3' };
   // 1) Eingehender Anruf: Popup oben in der Mitte (wie Discord)
   if (C.state === 'incoming') {
@@ -1428,14 +1734,28 @@ function openServerModal() {
     err));
   nameIn.focus();
 }
-function openCreateChannel(s) {
-  var inp = el('input', { placeholder: 'neuer-kanal', maxlength: 30 }), err = el('div', { class: 'err' });
+function openCreateChannel(s, type) {
+  type = type || 'text';
+  var inp = el('input', { placeholder: type === 'voice' ? 'z. B. Zocken' : 'neuer-kanal', maxlength: 30 }), err = el('div', { class: 'err' });
+  var pick = el('div', { class: 'typepick' });
+  function drawPick() {
+    pick.textContent = '';
+    [['text', '#', 'Text', 'Nachrichten, Bilder, Emojis'], ['voice', '🔊', 'Sprache', 'Zusammen reden']].forEach(function (t) {
+      pick.append(el('button', { class: 'tp' + (type === t[0] ? ' on' : ''), onclick: function () { type = t[0]; inp.placeholder = type === 'voice' ? 'z. B. Zocken' : 'neuer-kanal'; drawPick(); } },
+        el('span', { class: 'tpi' }, t[1]), el('span', {}, el('b', {}, t[2]), el('small', {}, t[3])), el('span', { class: 'tpr' }, type === t[0] ? '◉' : '○')));
+    });
+  }
+  drawPick();
   async function go() {
-    try { var d = await api('/api/channels/create', { serverId: s.id, name: inp.value }); S.servers[d.server.id] = d.server; closeModal(); openChannel(d.server.channels[d.server.channels.length - 1].id); }
-    catch (e) { err.textContent = e.message; }
+    try {
+      var d = await api('/api/channels/create', { serverId: s.id, name: inp.value, role: type });
+      S.servers[d.server.id] = d.server; closeModal();
+      var nc = d.server.channels[d.server.channels.length - 1];
+      if (nc.type === 'voice') renderAll(); else openChannel(nc.id);
+    } catch (e) { err.textContent = e.message; }
   }
   inp.onkeydown = function (e) { if (e.key === 'Enter') go(); };
-  modal('Kanal erstellen', el('div', {}, el('label', {}, 'Kanalname'), inp, err,
+  modal('Kanal erstellen', el('div', {}, el('label', {}, 'Kanaltyp'), pick, el('label', {}, 'Kanalname'), inp, err,
     el('div', { class: 'row end' }, el('button', { class: 'btn', onclick: closeModal }, 'Abbrechen'), el('button', { class: 'btn primary', onclick: go }, 'Erstellen'))));
   inp.focus();
 }
@@ -1477,13 +1797,14 @@ function openServerInfo() {
         try { upd(await api('/api/servers/rename', { serverId: s.id, name: nameIn.value })); toast('Gespeichert ✓'); } catch (e) { err.textContent = e.message; } } }, 'Speichern')),
       el('h3', {}, '# Kanäle'),
       s.channels.map(function (c) {
-        return el('div', { class: 'list-item' }, el('span', { class: 'hash' }, '#'), el('span', { style: 'flex:1' }, c.name),
+        return el('div', { class: 'list-item' }, el('span', { class: 'hash' }, c.type === 'voice' ? '🔊' : '#'), el('span', { style: 'flex:1' }, c.name),
           s.channels.length > 1 ? el('button', { class: 'btn red small', onclick: function () {
             confirmBox('Kanal #' + c.name + ' und alle Nachrichten darin löschen?', 'Löschen', async function () {
               var d = await api('/api/channels/delete', { serverId: s.id, channelId: c.id }); S.servers[d.server.id] = d.server; renderAll(); }, openServerInfo);
           } }, 'Löschen') : null);
       }),
-      el('div', { class: 'row' }, chIn, el('button', { class: 'btn green', onclick: addCh }, 'Kanal erstellen')));
+      el('div', { class: 'row' }, chIn, el('button', { class: 'btn green', onclick: addCh }, '# Textkanal'),
+        el('button', { class: 'btn primary', onclick: async function () { try { upd(await api('/api/channels/create', { serverId: s.id, name: chIn.value, role: 'voice' })); } catch (e) { err.textContent = e.message; } } }, '🔊 Sprachkanal')));
   }
   if (!s.main) {
     if (s.ownerId === S.me.id || S.me.role === 'owner') parts.push(el('hr'), el('button', { class: 'btn red', onclick: function () {
