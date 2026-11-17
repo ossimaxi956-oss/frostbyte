@@ -1,3 +1,5 @@
-❄️ Frostbyte bekommt jetzt automatische Updates – nie wieder neu herunterladen!
+✨ Frostbyte 2.0 – komplett neues Design!
+- Neues Logo: Eiskristall in Polarlicht-Farben
+- Polarlicht-Hintergrund, schwebende Glas-Fenster, leuchtende Knöpfe
+- Automatische Updates – nie wieder neu herunterladen
 - Neue Download-Webseite
-- Freunde im Browser bekommen neue Versionen automatisch (Seite lädt neu)
