@@ -44,3 +44,30 @@ jobs:
           body_path: CHANGES.md
           files: Frostbyte.exe
           make_latest: true
+
+  website:
+    needs: release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Neueste Version in die Webseite schreiben
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view --repo "$GITHUB_REPOSITORY" --json tagName,name,publishedAt,body,assets > rel.json
+          python3 - <<'PY'
+          import json
+          r = json.load(open('rel.json'))
+          a = next((x for x in r.get('assets', []) if x['name'] == 'Frostbyte.exe'), None)
+          json.dump({'version': r['tagName'], 'name': r['name'], 'date': r['publishedAt'], 'notes': r['body'],
+                     'size': a['size'] if a else 0,
+                     'url': 'https://github.com/' + __import__('os').environ['GITHUB_REPOSITORY'] + '/releases/download/' + r['tagName'] + '/Frostbyte.exe'},
+                    open('docs/version.json', 'w'), ensure_ascii=False)
+          PY
+          touch docs/.nojekyll
+      - name: Webseite veroeffentlichen
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ github.token }}
+          publish_dir: ./docs
+          publish_branch: gh-pages

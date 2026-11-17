@@ -84,14 +84,15 @@ footer{text-align:center;color:#6f84a3;font-size:13px;margin-top:50px}
 </div>
 <script>
 (function () {
-  // Neueste Version automatisch von GitHub holen
+  // Neueste Version: zuerst version.json (wird bei jedem Update neu gebaut), dann GitHub
   function fmt(d) { return new Date(d).toLocaleDateString('de-DE', { day: 'numeric', month: 'long', year: 'numeric' }); }
-  fetch('https://api.github.com/repos/ossimaxi956-oss/frostbyte/releases?per_page=5').then(function (r) { return r.json(); }).then(function (list) {
-    if (!Array.isArray(list) || !list.length) { document.getElementById('ver').textContent = 'Bald verfügbar'; document.getElementById('news').textContent = ''; return; }
-    var latest = list[0], asset = (latest.assets || []).filter(function (a) { return a.name === 'Frostbyte.exe'; })[0];
+  function showVersion(tag, date, size, url) {
     var v = document.getElementById('ver'); v.textContent = '';
-    var b = document.createElement('b'); b.textContent = 'Version ' + latest.tag_name.replace(/^v/, '');
-    v.append(b, document.createTextNode(' · ' + fmt(latest.published_at) + (asset ? ' · ' + (asset.size / 1048576).toFixed(1) + ' MB' : '')));
+    var b = document.createElement('b'); b.textContent = 'Version ' + String(tag).replace(/^v/, '');
+    v.append(b, document.createTextNode(' · ' + fmt(date) + (size ? ' · ' + (size / 1048576).toFixed(1) + ' MB' : '')));
+    if (url) document.getElementById('dl').href = url;
+  }
+  function showNews(list) {
     var n = document.getElementById('news'); n.textContent = '';
     list.forEach(function (r) {
       var d = document.createElement('div'); d.className = 'rel';
@@ -100,7 +101,20 @@ footer{text-align:center;color:#6f84a3;font-size:13px;margin-top:50px}
       var body = document.createElement('div'); body.textContent = r.body || '';
       d.append(t, s, body); n.append(d);
     });
-  }).catch(function () { document.getElementById('ver').textContent = ''; });
+  }
+  fetch('version.json?t=' + Date.now(), { cache: 'no-store' }).then(function (r) { return r.json(); }).then(function (j) {
+    showVersion(j.version, j.date, j.size, j.url);
+    showNews([{ name: j.name, tag_name: j.version, published_at: j.date, body: j.notes }]);
+  }).catch(function () {}).then(function () {
+    return fetch('https://api.github.com/repos/ossimaxi956-oss/frostbyte/releases?per_page=5', { cache: 'no-store' }).then(function (r) { return r.json(); }).then(function (list) {
+      if (!Array.isArray(list) || !list.length) return;
+      var latest = list[0], asset = (latest.assets || []).filter(function (a) { return a.name === 'Frostbyte.exe'; })[0];
+      showVersion(latest.tag_name, latest.published_at, asset && asset.size, asset && asset.browser_download_url);
+      showNews(list);
+    });
+  }).catch(function () {}).then(function () {
+    var v = document.getElementById('ver'); if (/geladen/.test(v.textContent)) v.textContent = '';
+  });
   // Schnee
   var c = document.getElementById('snow'), x = c.getContext('2d'), F = [];
   function size() { c.width = innerWidth; c.height = innerHeight; } size(); addEventListener('resize', size);
